@@ -1,36 +1,27 @@
 #include "stdafx.h"
+#include <iostream>
 
 #include "M4ATranscoder.h"
 
-LPCWSTR INPUT_FILE_NAME = L"HugeWAV.wav";
-LPCWSTR OUTPUT_FILE_NAME = L"E:\\M4ATranscoder\\WavToM4A\\Output.m4a";
-
 M4ATranscoder::M4ATranscoder()
 {
-   HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
+}
 
-   HRESULT hr = S_OK;
+M4ATranscoder::~M4ATranscoder()
+{
+}
 
-   // Initialize the COM library.
-   hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-
-   if (SUCCEEDED(hr))
-   {
-      hr = MFStartup(MF_VERSION);
-   }
-
-   m_Handle.Attach(CreateEvent(NULL, FALSE, FALSE, NULL));
+bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
+{
    CComPtr<IMFTopology> topology;
-
-   hr = MFCreateMediaSession(NULL, &m_MediaSession);
-   //hr = m_MediaSession->BeginGetEvent(this, NULL);
+   HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
 
    MF_OBJECT_TYPE object_type;
    CComPtr<IMFSourceResolver> src_resolver;
 
    hr = MFCreateSourceResolver(&src_resolver);
    hr = src_resolver->CreateObjectFromURL(
-      INPUT_FILE_NAME,
+      pstrInput,
       MF_RESOLUTION_MEDIASOURCE,
       NULL,
       &object_type,
@@ -47,47 +38,37 @@ M4ATranscoder::M4ATranscoder()
    hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &stream_desc);
    ATLASSERT(selected == TRUE);
 
-   ConfigureOutput(stream_desc, topology);
+   ConfigureOutput(pstrOutput, stream_desc, topology);
    hr = m_MediaSession->SetTopology(0, topology);
 
    PROPVARIANT props;
    props.intVal = 0;
    hr = m_MediaSession->Start(NULL, &props);
-   
    while (true)
    {
-      IMFMediaEvent* pEvent = NULL;
+      CComPtr<IMFMediaEvent> pEvent;
       MediaEventType eType = 0;
       m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
       if (pEvent)
          pEvent->GetType(&eType);
+      std::cout << eType << std::endl;
+      if (eType == MEEndOfPresentation)
+      {
+         m_MediaSession->Stop();
+      }
       if (eType == MESessionEnded)
       {
+         m_MediaSession->Shutdown();
          break;
       }
+      //if (eType == MESessionNotifyPresentationTime)
+      //{
+         //PROPVARIANT propOffset;
+         //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
+      //}
       Sleep(100);
    }
-
-   m_MediaSession->Shutdown();
-   MFShutdown();
-   CoUninitialize();
-}
-
-HRESULT M4ATranscoder::CreateMediaSrc()
-{
-   HRESULT hr;
-   MF_OBJECT_TYPE object_type;
-   CComPtr<IMFSourceResolver> src_resolver;
-
-   hr = MFCreateSourceResolver(&src_resolver);
-   hr = src_resolver->CreateObjectFromURL(
-      INPUT_FILE_NAME,
-      MF_RESOLUTION_MEDIASOURCE,
-      NULL,
-      &object_type,
-      (IUnknown**)&m_Source);
-   ATLASSERT(object_type == MF_OBJECT_MEDIASOURCE);
-   return hr;
+   return true;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
@@ -110,7 +91,7 @@ void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
    ATLTRACE(_T("\n"));
 }
 
-HRESULT M4ATranscoder::ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc,
+HRESULT M4ATranscoder::ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
    CComPtr<IMFTopology>& topology)
 {
    HRESULT hr;
@@ -176,38 +157,8 @@ HRESULT M4ATranscoder::ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc,
    hr = x_prof->SetContainerAttributes(attr_container);
    hr = MFCreateTranscodeTopology(
       m_Source,
-      OUTPUT_FILE_NAME,
+      pstrOutput,
       x_prof,
       &topology);
-   return hr;
-}
-
-HRESULT STDMETHODCALLTYPE M4ATranscoder::GetParameters(
-   /* [out] */ __RPC__out DWORD *pdwFlags,
-   /* [out] */ __RPC__out DWORD *pdwQueue)
-{
-   return S_OK;
-}
-
-HRESULT STDMETHODCALLTYPE M4ATranscoder::Invoke(
-   /* [in] */ __RPC__in_opt IMFAsyncResult *pAsyncResult)
-{
-   HRESULT hr = S_OK;
-   /*MediaEventType me_type;
-   CComPtr<IMFMediaEvent> media_event;
-   try {
-      hr = m_MediaSession->EndGetEvent(pAsyncResult, &media_event);
-      hr = media_event->GetType(&me_type);
-      if (me_type == MESessionClosed) {
-         SetEvent(m_Handle);
-      }
-      else {
-         media_event.p->AddRef();
-         ::PostMessage(NULL, WM_MF_EVENT,
-            (WPARAM)(IMFMediaEvent*)media_event, (LPARAM)0);
-         hr = m_MediaSession->BeginGetEvent(this, NULL);
-      }
-   }
-   catch (CAtlException &) {}*/
    return hr;
 }
