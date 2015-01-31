@@ -15,22 +15,17 @@
 #pragma comment(lib, "mfuuid.lib")
 
 class M4ATranscoder
-   : public CComObjectRootEx<CComMultiThreadModel>, public IMFAsyncCallback
+   //: public CComObjectRootEx<CComMultiThreadModel>, public IMFAsyncCallback
 {
 public:
    M4ATranscoder();
 
-   BEGIN_COM_MAP(M4ATranscoder)
-      COM_INTERFACE_ENTRY(IMFAsyncCallback)
-   END_COM_MAP()
+   //BEGIN_COM_MAP(M4ATranscoder)
+      //COM_INTERFACE_ENTRY(IMFAsyncCallback)
+   //END_COM_MAP()
    const static unsigned WM_MF_EVENT = WM_APP + 1;
 
-   DECLARE_PROTECT_FINAL_CONSTRUCT();
-   //BEGIN_MSG_MAP(M4ATranscoder)
-      //MESSAGE_HANDLER(WM_CREATE, OnCreate)
-      //MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
-      //MESSAGE_HANDLER(WM_MF_EVENT, OnMFEvent)
-   //END_MSG_MAP()
+   //DECLARE_PROTECT_FINAL_CONSTRUCT();
 
    HRESULT CreateMediaSrc();
    HRESULT ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc,

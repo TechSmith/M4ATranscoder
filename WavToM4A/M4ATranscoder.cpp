@@ -2,20 +2,40 @@
 
 #include "M4ATranscoder.h"
 
-LPCWSTR INPUT_FILE_NAME = L"C:\\Users\\s.elgas\\Desktop\\03-141230_1744.wav";
-LPCWSTR OUTPUT_FILE_NAME = L"C:\\Users\\s.elgas\\Desktop\\Output.m4a";
+LPCWSTR INPUT_FILE_NAME = L"HugeWAV.wav";
+LPCWSTR OUTPUT_FILE_NAME = L"E:\\M4ATranscoder\\WavToM4A\\Output.m4a";
 
 M4ATranscoder::M4ATranscoder()
 {
-   m_Handle.Attach(CreateEvent(NULL, FALSE, FALSE, NULL));
-   CComPtr<IMFTopology> topology;
+   HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
    HRESULT hr = S_OK;
 
-   hr = MFCreateMediaSession(NULL, &m_MediaSession);
-   hr = m_MediaSession->BeginGetEvent(this, NULL);
+   // Initialize the COM library.
+   hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-   CreateMediaSrc();
+   if (SUCCEEDED(hr))
+   {
+      hr = MFStartup(MF_VERSION);
+   }
+
+   m_Handle.Attach(CreateEvent(NULL, FALSE, FALSE, NULL));
+   CComPtr<IMFTopology> topology;
+
+   hr = MFCreateMediaSession(NULL, &m_MediaSession);
+   //hr = m_MediaSession->BeginGetEvent(this, NULL);
+
+   MF_OBJECT_TYPE object_type;
+   CComPtr<IMFSourceResolver> src_resolver;
+
+   hr = MFCreateSourceResolver(&src_resolver);
+   hr = src_resolver->CreateObjectFromURL(
+      INPUT_FILE_NAME,
+      MF_RESOLUTION_MEDIASOURCE,
+      NULL,
+      &object_type,
+      (IUnknown**)&m_Source);
+   ATLASSERT(object_type == MF_OBJECT_MEDIASOURCE);
 
    CComPtr<IMFPresentationDescriptor> pres_desc;
    CComPtr<IMFStreamDescriptor> stream_desc;
@@ -29,6 +49,28 @@ M4ATranscoder::M4ATranscoder()
 
    ConfigureOutput(stream_desc, topology);
    hr = m_MediaSession->SetTopology(0, topology);
+
+   PROPVARIANT props;
+   props.intVal = 0;
+   hr = m_MediaSession->Start(NULL, &props);
+   
+   while (true)
+   {
+      IMFMediaEvent* pEvent = NULL;
+      MediaEventType eType = 0;
+      m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
+      if (pEvent)
+         pEvent->GetType(&eType);
+      if (eType == MESessionEnded)
+      {
+         break;
+      }
+      Sleep(100);
+   }
+
+   m_MediaSession->Shutdown();
+   MFShutdown();
+   CoUninitialize();
 }
 
 HRESULT M4ATranscoder::CreateMediaSrc()
@@ -151,7 +193,7 @@ HRESULT STDMETHODCALLTYPE M4ATranscoder::Invoke(
    /* [in] */ __RPC__in_opt IMFAsyncResult *pAsyncResult)
 {
    HRESULT hr = S_OK;
-   MediaEventType me_type;
+   /*MediaEventType me_type;
    CComPtr<IMFMediaEvent> media_event;
    try {
       hr = m_MediaSession->EndGetEvent(pAsyncResult, &media_event);
@@ -166,6 +208,6 @@ HRESULT STDMETHODCALLTYPE M4ATranscoder::Invoke(
          hr = m_MediaSession->BeginGetEvent(this, NULL);
       }
    }
-   catch (CAtlException &) {}
+   catch (CAtlException &) {}*/
    return hr;
 }
