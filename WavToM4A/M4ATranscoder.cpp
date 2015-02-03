@@ -92,6 +92,7 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
 
 void M4ATranscoder::CancelTranscode()
 {
+   std::cout << "cancel" << std::endl;
    m_Canceling = true;
 }
 

@@ -1,8 +1,11 @@
 #include <Windows.h>
 #include <atlstr.h>
 
+// uncomment to test features
+//#define TEST_CANCEL_TRANSCODE
+
 typedef void(*WaveToM4A_FUNC)(WCHAR*, WCHAR*);
-//typedef void(*CancelWaveToM4A_FUNC)(void);
+typedef void(*CancelWaveToM4A_FUNC)(void);
 
 DWORD WINAPI TranscoderThread(LPVOID lpParam);
 
@@ -11,7 +14,7 @@ int main()
    HMODULE hMod;
    CString strDLLPath = _T("WavToM4A.dll");
    hMod = LoadLibrary(strDLLPath);
-   //CancelWaveToM4A_FUNC cancelfunc = (CancelWaveToM4A_FUNC)GetProcAddress(hMod, "CancelWaveToM4A");
+   CancelWaveToM4A_FUNC cancelfunc = (CancelWaveToM4A_FUNC)GetProcAddress(hMod, "CancelWaveToM4A");
 
    // spawn transcoder in a separate thread
    DWORD transcoderThreadId;
@@ -22,6 +25,11 @@ int main()
       hMod,
       0,
       &transcoderThreadId);
+
+#ifdef TEST_CANCEL_TRANSCODE
+   Sleep(2000);
+   cancelfunc();
+#endif
 
    // wait for transcoding to finish
    WaitForSingleObject(hTranscoderThread, INFINITE);
