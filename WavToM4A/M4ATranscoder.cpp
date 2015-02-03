@@ -57,19 +57,35 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
       {
          m_MediaSession->Stop();
       }
-      if (eType == MESessionEnded)
+      if (eType == MESessionEnded || eType == MESessionClosed)
       {
          m_MediaSession->Shutdown();
          break;
+      }
+      if (m_Canceling)
+      {
+         // closing the session will eventually trigger an MESessionClosed event
+         m_MediaSession->Close();
       }
       //if (eType == MESessionNotifyPresentationTime)
       //{
          //PROPVARIANT propOffset;
          //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
       //}
-      // TODO: if m_Canceling is true, stop encoding, delete the output file, and exit
       Sleep(100);
    }
+
+   if (m_Canceling)
+   {
+      // if we just canceled, remove the leftover file
+      BOOL deleteResult = DeleteFile(pstrOutput);
+      if (deleteResult == 0)
+      {
+         ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
+         return false;
+      }
+   }
+
    return true;
 }
 
