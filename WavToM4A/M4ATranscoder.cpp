@@ -75,9 +75,10 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
       Sleep(100);
    }
 
+   // if we just canceled, remove the leftover file
    if (m_Canceling)
    {
-      // if we just canceled, remove the leftover file
+      m_Canceling = false;
       BOOL deleteResult = DeleteFile(pstrOutput);
       if (deleteResult == 0)
       {
