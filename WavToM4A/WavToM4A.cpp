@@ -4,28 +4,25 @@
 #include "stdafx.h"
 #include "M4ATranscoder.h"
 
-class M4ATranscoderImpl : public CAtlDllModuleT < M4ATranscoder >
+extern "C" __declspec(dllexport) void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOutput)
 {
-   HRESULT PreMessageLoop(int nShowCmd) throw()
-   {
-      HRESULT hr = MFStartup(MF_VERSION);
-      if (FAILED(hr)) {
-         return hr;
-      }
+   HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
-      return S_OK;
+   // Initialize the COM library.
+   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+   if (SUCCEEDED(hr))
+   {
+      hr = MFStartup(MF_VERSION);
    }
 
-   HRESULT PostMessageLoop() throw()
    {
-      HRESULT hr = MFShutdown();
-      return S_OK;
+      M4ATranscoder encoder;
+      encoder.Transcode(pstrInput, pstrOutput);
    }
-};
 
-extern "C" __declspec(dllexport) void SomeFunction()
-{
-   M4ATranscoderImpl encoder;
+   MFShutdown();
+   CoUninitialize();
 }
 
 
