@@ -4,3 +4,7 @@
 ipch/
 [Dd]ebug*/
 [Rr]elease*/
+
+# Project specific files#
+TestInput*/
+TestOutput*/

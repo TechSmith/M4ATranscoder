@@ -42,8 +42,8 @@ DWORD WINAPI TranscoderThread(LPVOID lpParam)
 {
    HMODULE hMod = (HMODULE)lpParam;
 
-   WCHAR strInput[] = L"HugeWAV.wav";
-   WCHAR strOutput[] = L"Output.m4a";
+   WCHAR strInput[] = L"TestInput/HugeWAV.wav";
+   WCHAR strOutput[] = L"TestOutput/Output.m4a";
 
    WaveToM4A_FUNC convertfunc = (WaveToM4A_FUNC)GetProcAddress(hMod, "WaveToM4A");
    if (convertfunc != NULL)
