@@ -18,6 +18,7 @@ public:
    ~M4ATranscoder();
 
    bool Transcode(WCHAR* pstrInput, WCHAR* pstrOutput);
+   void CancelTranscode();
 
 protected:
    HRESULT ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
@@ -26,4 +27,5 @@ protected:
 protected:
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
+   bool m_Canceling;
 };

@@ -5,6 +5,7 @@
 
 M4ATranscoder::M4ATranscoder()
 {
+   m_Canceling = false;
 }
 
 M4ATranscoder::~M4ATranscoder()
@@ -66,9 +67,15 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
          //PROPVARIANT propOffset;
          //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
       //}
+      // TODO: if m_Canceling is true, stop encoding, delete the output file, and exit
       Sleep(100);
    }
    return true;
+}
+
+void M4ATranscoder::CancelTranscode()
+{
+   m_Canceling = true;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)

@@ -1,3 +1,6 @@
-# VS 2013 code browsing database #
+# Visual Studio generated files #
 *.sdf
 *.opensdf
+ipch/
+[Dd]ebug*/
+[Rr]elease*/
