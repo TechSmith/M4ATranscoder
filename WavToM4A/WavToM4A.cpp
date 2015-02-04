@@ -3,10 +3,11 @@
 
 #include "stdafx.h"
 #include "M4ATranscoder.h"
+#include <M4ATranscoder/M4ATranscoderAPI.h>
 
 M4ATranscoder* _Encoder = NULL;
 
-extern "C" __declspec(dllexport) void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOutput)
+WAVETOM4A_EXTERN void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
 {
    HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
@@ -19,19 +20,17 @@ extern "C" __declspec(dllexport) void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOut
    }
 
    {
-      _Encoder = new M4ATranscoder();
-      _Encoder->Transcode(pstrInput, pstrOutput);
+      M4ATranscoder encoder;
+      encoder.Transcode(pstrInput, pstrOutput, pProgress);
    }
-
-   delete _Encoder;
-   _Encoder = NULL;
 
    MFShutdown();
    CoUninitialize();
 }
 
-extern "C" __declspec(dllexport) void CancelWaveToM4A()
-{
-   if (_Encoder)
-      _Encoder->CancelTranscode();
-}
+//extern "C" __declspec(dllexport) void CancelWaveToM4A()
+//{
+//   if (_Encoder)
+//      _Encoder->CancelTranscode();
+//}
+

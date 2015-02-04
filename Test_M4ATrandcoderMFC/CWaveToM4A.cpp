@@ -1,20 +1,21 @@
 #include "stdafx.h"
-#include "WaveToM4A.h"
+#include "CWaveToM4A.h"
 
-WaveToM4A::WaveToM4A(const CString& strInput, const CString& strOutput)
-   : m_strInput(strInput), m_strOutput(strOutput), m_hTranscoderThread(0), m_bCancel(false), m_hwnd(0)
+CWaveToM4A::CWaveToM4A(const CString& strInput, const CString& strOutput)
+   : m_strInput(strInput), m_strOutput(strOutput), m_hTranscoderThread(0), 
+   m_dProgress(0.), m_bCancel(false), m_hwnd(0)
 {
 
 }
 
-WaveToM4A::~WaveToM4A()
+CWaveToM4A::~CWaveToM4A()
 {
    if (m_hTranscoderThread != 0)
       WaitThreadFinish();
 }
 
 /*static*/
-bool WaveToM4A::PerformCheck(const CString& strInput, const CString& strOutput)
+bool CWaveToM4A::PerformCheck(const CString& strInput, const CString& strOutput)
 {
    if (strInput.IsEmpty())
       return AfxMessageBox(NEVER_TRANSLATE("Input is empty")), false;
@@ -27,7 +28,7 @@ bool WaveToM4A::PerformCheck(const CString& strInput, const CString& strOutput)
    return true;
 }
 
-bool WaveToM4A::Transcode(HWND hwnd /*= 0*/)
+bool CWaveToM4A::Transcode(HWND hwnd /*= 0*/)
 {
    m_hwnd = hwnd;
 
@@ -43,7 +44,7 @@ bool WaveToM4A::Transcode(HWND hwnd /*= 0*/)
    return true;
 }
 
-void WaveToM4A::WaitThreadFinish()
+void CWaveToM4A::WaitThreadFinish()
 {
    ASSERT(m_hTranscoderThread != 0);
 
@@ -52,27 +53,37 @@ void WaveToM4A::WaitThreadFinish()
    CloseHandle(m_hTranscoderThread);
 }
 
-int WaveToM4A::GetProgress() const
+double CWaveToM4A::GetProgress() const
 {
-   return 15;//TODO: FIX!!!
+   return m_dProgress;
 }
 
-void WaveToM4A::Cancel()
+void CWaveToM4A::Cancel()
 {
    m_bCancel = true;
    WaitThreadFinish();
 }
 
-/*static*/
-DWORD WINAPI WaveToM4A::TranscoderThread(LPVOID lpParam)
+void CWaveToM4A::SetProgress(double dPercent)
 {
-   WaveToM4A* pThiz = (WaveToM4A*)lpParam;
+   m_dProgress = dPercent;
+}
+
+bool CWaveToM4A::GetCanceled()
+{
+   return m_bCancel;
+}
+
+/*static*/
+DWORD WINAPI CWaveToM4A::TranscoderThread(LPVOID lpParam)
+{
+   CWaveToM4A* pThiz = (CWaveToM4A*)lpParam;
    DWORD dwRet = pThiz->TranscoderWorker() ? 1 : 0;
    pThiz->m_hTranscoderThread = 0;
    return dwRet;
 }
 
-bool WaveToM4A::TranscoderWorker()
+bool CWaveToM4A::TranscoderWorker()
 {
    bool bOK = false;
    HMODULE hMod = NULL;
@@ -87,9 +98,7 @@ bool WaveToM4A::TranscoderWorker()
       goto Done;
    }
 
-   typedef void(*WaveToM4A_FUNC)(WCHAR*, WCHAR*);
-
-   WaveToM4A_FUNC convertfunc = (WaveToM4A_FUNC)GetProcAddress(hMod, "WaveToM4A");
+   WAVETOM4A_FUNC convertfunc = (WAVETOM4A_FUNC)GetProcAddress(hMod, "WaveToM4A");
    if (convertfunc == NULL)
    {
       //AfxMessageBox is ok to call in a thread.  Still normally you'd want to return an enum
@@ -98,7 +107,7 @@ bool WaveToM4A::TranscoderWorker()
       goto Done;
    }
 
-   convertfunc(m_strInput.LockBuffer(), m_strOutput.LockBuffer());
+   convertfunc(m_strInput.LockBuffer(), m_strOutput.LockBuffer(), (IM4AProgress*)this);
    m_strInput.UnlockBuffer();
    m_strOutput.UnlockBuffer();
 

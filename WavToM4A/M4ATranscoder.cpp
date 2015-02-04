@@ -2,17 +2,9 @@
 #include <iostream>
 
 #include "M4ATranscoder.h"
+#include <M4ATranscoder/M4ATranscoderAPI.h>
 
-M4ATranscoder::M4ATranscoder()
-{
-   m_Canceling = false;
-}
-
-M4ATranscoder::~M4ATranscoder()
-{
-}
-
-bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
+bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
 {
    CComPtr<IMFTopology> topology;
    HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
@@ -62,7 +54,7 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
          m_MediaSession->Shutdown();
          break;
       }
-      if (m_Canceling)
+      if (pProgress->GetCanceled())
       {
          // closing the session will eventually trigger an MESessionClosed event
          m_MediaSession->Close();
@@ -76,9 +68,8 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    }
 
    // if we just canceled, remove the leftover file
-   if (m_Canceling)
+   if (pProgress->GetCanceled())
    {
-      m_Canceling = false;
       BOOL deleteResult = DeleteFile(pstrOutput);
       if (deleteResult == 0)
       {
@@ -88,12 +79,6 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    }
 
    return true;
-}
-
-void M4ATranscoder::CancelTranscode()
-{
-   std::cout << "cancel" << std::endl;
-   m_Canceling = true;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)

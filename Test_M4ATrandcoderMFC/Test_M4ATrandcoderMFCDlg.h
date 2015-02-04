@@ -6,7 +6,7 @@
 
 
 // CTest_M4ATrandcoderMFCDlg dialog
-class WaveToM4A;
+class CWaveToM4A;
 class CTest_M4ATrandcoderMFCDlg : public CDialogEx
 {
 // Construction
@@ -37,7 +37,7 @@ public:
    afx_msg LRESULT OnTranscodeCompleted(WPARAM wparam, LPARAM lparam);
 
 protected:
-   WaveToM4A* m_pTranscoder;
+   CWaveToM4A* m_pTranscoder;
    UINT_PTR m_nIDEvent;
 public:
    afx_msg void OnBnClickedBtnBrowseInput();
