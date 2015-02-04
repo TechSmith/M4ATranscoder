@@ -16,14 +16,23 @@ M4ATranscoder::~M4ATranscoder()
 void M4ATranscoder::SetSourceDuration()
 {
    m_SourceDuration = 0;
-   IMFPresentationDescriptor* pDescriptor = NULL;
+   CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
    ATLASSERT(m_Source != NULL);
    HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
    if (SUCCEEDED(hr))
    {
       hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
-      pDescriptor->Release();
    }
+}
+
+void M4ATranscoder::SetPresentationClock()
+{
+   ATLASSERT(m_MediaSession != NULL);
+   CComPtr<IMFClock> pClock = NULL;
+   HRESULT hr = m_MediaSession->GetClock(&pClock);
+   ATLASSERT(SUCCEEDED(hr));
+   hr = pClock->QueryInterface(IID_PPV_ARGS(&m_Clock));
+   ATLASSERT(SUCCEEDED(hr));
 }
 
 bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
@@ -52,7 +61,9 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    ATLASSERT(stream_count == 1);
    hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &stream_desc);
    ATLASSERT(selected == TRUE);
+
    SetSourceDuration();
+   SetPresentationClock();
 
    ConfigureOutput(pstrOutput, stream_desc, topology);
    hr = m_MediaSession->SetTopology(0, topology);
@@ -103,6 +114,18 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    }
 
    return true;
+}
+
+int M4ATranscoder::GetEncodingProgress()
+{
+   int progress = 0;
+   if (m_Clock && m_SourceDuration != 0)
+   {
+      MFTIME pos = 0;
+      m_Clock->GetTime(&pos);
+      progress = (int)((100 * pos) / m_SourceDuration);
+   }
+   return progress;
 }
 
 void M4ATranscoder::CancelTranscode()

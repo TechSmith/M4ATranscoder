@@ -18,16 +18,19 @@ public:
    ~M4ATranscoder();
 
    bool Transcode(WCHAR* pstrInput, WCHAR* pstrOutput);
+   int  GetEncodingProgress();
    void CancelTranscode();
 
 protected:
    HRESULT ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
       CComPtr<IMFTopology>& topology);
    void SetSourceDuration();
+   void SetPresentationClock();
 
 protected:
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
+   CComPtr<IMFPresentationClock> m_Clock;
    MFTIME m_SourceDuration;
    bool m_Canceling;
 };
