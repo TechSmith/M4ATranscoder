@@ -6,7 +6,7 @@
 #include "Test_M4ATrandcoderMFC.h"
 #include "Test_M4ATrandcoderMFCDlg.h"
 #include "afxdialogex.h"
-#include "WaveToM4A.h"
+#include "CWaveToM4A.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -81,7 +81,7 @@ void CTest_M4ATrandcoderMFCDlg::OnTimer(UINT_PTR nIDEvent)
       if (m_pTranscoder != NULL)
       {
          CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
-         pProgress->SetPos(m_pTranscoder->GetProgress());
+         pProgress->SetPos((int)m_pTranscoder->GetProgress());
       }
    }
 }
@@ -195,10 +195,10 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
    GetDlgItem(IDC_EDIT_INPUT)->GetWindowText(strInput);
    GetDlgItem(IDC_EDIT_OUTPUT)->GetWindowText(strOutput);
 
-   if (!WaveToM4A::PerformCheck(strInput, strOutput))
+   if (!CWaveToM4A::PerformCheck(strInput, strOutput))
       return;
 
-   m_pTranscoder = new WaveToM4A(strInput, strOutput);
+   m_pTranscoder = new CWaveToM4A(strInput, strOutput);
    (void)m_pTranscoder->Transcode(GetSafeHwnd());//Multi-threaded so ignoring return value here :)
 
    //Disable some UI controls
@@ -214,7 +214,10 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnCanceltranscode()
    if (m_pTranscoder == NULL)
       return;
 
+   GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(FALSE);
+
    m_pTranscoder->Cancel();
+   SAFE_DELETE(m_pTranscoder);
 }
 
 LRESULT CTest_M4ATrandcoderMFCDlg::OnTranscodeCompleted(WPARAM wparam, LPARAM lparam)

@@ -11,15 +11,12 @@
 #pragma comment(lib, "mf.lib")
 #pragma comment(lib, "mfuuid.lib")
 
+class IM4AProgress;
 class M4ATranscoder
 {
 public:
-   M4ATranscoder();
-   ~M4ATranscoder();
-
-   bool Transcode(WCHAR* pstrInput, WCHAR* pstrOutput);
-   int  GetEncodingProgress();
-   void CancelTranscode();
+   bool Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress);
+   double GetEncodingProgress();
 
 protected:
    HRESULT ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
@@ -32,5 +29,5 @@ protected:
    CComQIPtr<IMFMediaSource> m_Source;
    CComPtr<IMFPresentationClock> m_Clock;
    MFTIME m_SourceDuration;
-   bool m_Canceling;
+   IM4AProgress* m_pProgress;
 };

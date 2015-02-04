@@ -33,7 +33,7 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WaveToM4A.h">
+    <ClInclude Include="CWaveToM4A.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,7 +47,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WaveToM4A.cpp">
+    <ClCompile Include="CWaveToM4A.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

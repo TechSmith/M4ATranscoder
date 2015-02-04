@@ -1,17 +1,7 @@
 #include "stdafx.h"
-#include <iostream>
 
 #include "M4ATranscoder.h"
-
-M4ATranscoder::M4ATranscoder()
-{
-   m_SourceDuration = 0;
-   m_Canceling = false;
-}
-
-M4ATranscoder::~M4ATranscoder()
-{
-}
+#include <M4ATranscoder/M4ATranscoderAPI.h>
 
 void M4ATranscoder::SetSourceDuration()
 {
@@ -35,7 +25,8 @@ void M4ATranscoder::SetPresentationClock()
    ATLASSERT(SUCCEEDED(hr));
 }
 
-bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
+#define FOREVER   true
+bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
 {
    CComPtr<IMFTopology> topology;
    HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
@@ -71,14 +62,14 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    PROPVARIANT props;
    props.intVal = 0;
    hr = m_MediaSession->Start(NULL, &props);
-   while (true)
+   while (FOREVER)
    {
       CComPtr<IMFMediaEvent> pEvent;
       MediaEventType eType = 0;
       m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
       if (pEvent)
          pEvent->GetType(&eType);
-      std::cout << eType << std::endl;
+
       if (eType == MEEndOfPresentation)
       {
          m_MediaSession->Stop();
@@ -88,50 +79,45 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
          m_MediaSession->Shutdown();
          break;
       }
-      if (m_Canceling)
+
+
+      if (pProgress && pProgress->GetCanceled())
       {
          // closing the session will eventually trigger an MESessionClosed event
          m_MediaSession->Close();
       }
-      //if (eType == MESessionNotifyPresentationTime)
-      //{
-         //PROPVARIANT propOffset;
-         //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
-      //}
+
+      if (pProgress)
+      {
+         double dProgress = GetEncodingProgress();
+         if (dProgress > 0.)
+            pProgress->SetProgress(dProgress);
+      }
+
       Sleep(100);
    }
 
    // if we just canceled, remove the leftover file
-   if (m_Canceling)
+   if (pProgress->GetCanceled() && !::DeleteFile(pstrOutput) )
    {
-      m_Canceling = false;
-      BOOL deleteResult = DeleteFile(pstrOutput);
-      if (deleteResult == 0)
-      {
-         ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
-         return false;
-      }
+      ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
+      return false;
    }
 
    return true;
 }
+#undef FOREVER
 
-int M4ATranscoder::GetEncodingProgress()
+double M4ATranscoder::GetEncodingProgress()
 {
-   int progress = 0;
+   double dProgress = -1.;
    if (m_Clock && m_SourceDuration != 0)
    {
       MFTIME pos = 0;
       m_Clock->GetTime(&pos);
-      progress = (int)((100 * pos) / m_SourceDuration);
+      dProgress = ((100. * pos) / m_SourceDuration);
    }
-   return progress;
-}
-
-void M4ATranscoder::CancelTranscode()
-{
-   std::cout << "cancel" << std::endl;
-   m_Canceling = true;
+   return dProgress;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
