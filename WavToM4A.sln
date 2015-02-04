@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_M4ATranscode", "Test_M
 		{44659594-C2AB-4E14-924A-131B12CF9C48} = {44659594-C2AB-4E14-924A-131B12CF9C48}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoPkgFile", "AutoPkgFile", "{0C7F6CDF-26E0-405C-93BC-2A2A4C4C24EC}"
+	ProjectSection(SolutionItems) = preProject
+		M4ATranscoder.autopkg = M4ATranscoder.autopkg
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

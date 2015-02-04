@@ -10,7 +10,7 @@ nuget
    nuspec
    {
       id = M4ATranscoder;
-      version: 1.0.0.0;
+      version: 1.0.0.5;
       title: Wave to M4A Transcoder;
       authors: { TechSmith Corporation };
       owners: { TechSmith Corporation };
@@ -35,27 +35,22 @@ nuget
    files
    {
       nestedInclude:  { #destination = ${d_include}M4ATranscoder; Include\M4ATranscoder\*.h };
-      libpdb:          { #destination = ${d_lib}; };
 
       [x86,v120,debug,dynamic]
       {
-         lib: { Lib\debug\*.dll; }
-         libpdb: { Lib\debug\*.pdb; }
+         bin: { Bin\Win32\Debug\*.dll; }
       };
       [x86,v120,release,dynamic]
       {
-         lib: { Lib\release\*.dll; }
-         libpdb: { Lib\release\*.pdb; }
+         bin: { Bin\Win32\Release\*.dll; }
       };
       [x64,v120,debug,dynamic]
       {
-         lib: { Lib\x64_debug\*.dll; }
-         libpdb: { Lib\x64_debug\*.pdb; }
+         bin: { Bin\X64\Debug\*.dll; }
       };
       [x64,v120,release,dynamic]
       {
-         lib: { Lib\x64_release\*.dll; }
-         libpdb: { Lib\x64_release\*.pdb; }
+         bin: { Bin\X64\Release\*.dll; }
       };
    };
 
