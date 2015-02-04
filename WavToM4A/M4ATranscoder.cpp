@@ -1,9 +1,31 @@
 #include "stdafx.h"
-#include <iostream>
 
 #include "M4ATranscoder.h"
 #include <M4ATranscoder/M4ATranscoderAPI.h>
 
+void M4ATranscoder::SetSourceDuration()
+{
+   m_SourceDuration = 0;
+   CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
+   ATLASSERT(m_Source != NULL);
+   HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
+   if (SUCCEEDED(hr))
+   {
+      hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
+   }
+}
+
+void M4ATranscoder::SetPresentationClock()
+{
+   ATLASSERT(m_MediaSession != NULL);
+   CComPtr<IMFClock> pClock = NULL;
+   HRESULT hr = m_MediaSession->GetClock(&pClock);
+   ATLASSERT(SUCCEEDED(hr));
+   hr = pClock->QueryInterface(IID_PPV_ARGS(&m_Clock));
+   ATLASSERT(SUCCEEDED(hr));
+}
+
+#define FOREVER   true
 bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
 {
    CComPtr<IMFTopology> topology;
@@ -31,20 +53,23 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
    hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &stream_desc);
    ATLASSERT(selected == TRUE);
 
+   SetSourceDuration();
+   SetPresentationClock();
+
    ConfigureOutput(pstrOutput, stream_desc, topology);
    hr = m_MediaSession->SetTopology(0, topology);
 
    PROPVARIANT props;
    props.intVal = 0;
    hr = m_MediaSession->Start(NULL, &props);
-   while (true)
+   while (FOREVER)
    {
       CComPtr<IMFMediaEvent> pEvent;
       MediaEventType eType = 0;
       m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
       if (pEvent)
          pEvent->GetType(&eType);
-      std::cout << eType << std::endl;
+
       if (eType == MEEndOfPresentation)
       {
          m_MediaSession->Stop();
@@ -54,31 +79,45 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
          m_MediaSession->Shutdown();
          break;
       }
-      if (pProgress->GetCanceled())
+
+
+      if (pProgress && pProgress->GetCanceled())
       {
          // closing the session will eventually trigger an MESessionClosed event
          m_MediaSession->Close();
       }
-      //if (eType == MESessionNotifyPresentationTime)
-      //{
-         //PROPVARIANT propOffset;
-         //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
-      //}
+
+      if (pProgress)
+      {
+         double dProgress = GetEncodingProgress();
+         if (dProgress > 0.)
+            pProgress->SetProgress(dProgress);
+      }
+
       Sleep(100);
    }
 
    // if we just canceled, remove the leftover file
-   if (pProgress->GetCanceled())
+   if (pProgress->GetCanceled() && !::DeleteFile(pstrOutput) )
    {
-      BOOL deleteResult = DeleteFile(pstrOutput);
-      if (deleteResult == 0)
-      {
-         ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
-         return false;
-      }
+      ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
+      return false;
    }
 
    return true;
+}
+#undef FOREVER
+
+double M4ATranscoder::GetEncodingProgress()
+{
+   double dProgress = -1.;
+   if (m_Clock && m_SourceDuration != 0)
+   {
+      MFTIME pos = 0;
+      m_Clock->GetTime(&pos);
+      dProgress = ((100. * pos) / m_SourceDuration);
+   }
+   return dProgress;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)

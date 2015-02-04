@@ -5,9 +5,20 @@
 #include "M4ATranscoder.h"
 #include <M4ATranscoder/M4ATranscoderAPI.h>
 
-M4ATranscoder* _Encoder = NULL;
+WAVETOM4A_EXTERN int WaveToM4ACreate(WaveToM4AHandle* ppHandle)
+{
+   *ppHandle = new M4ATranscoder;
+   return WAVETOM4A_SUCCESS;
+}
 
-WAVETOM4A_EXTERN void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
+WAVETOM4A_EXTERN int WaveToM4AFree(WaveToM4AHandle* ppHandle)
+{
+   M4ATranscoder* ptr = (M4ATranscoder*)*ppHandle;
+   delete ptr;
+   return WAVETOM4A_SUCCESS;
+}
+
+WAVETOM4A_EXTERN void WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
 {
    HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
@@ -20,17 +31,10 @@ WAVETOM4A_EXTERN void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgres
    }
 
    {
-      M4ATranscoder encoder;
-      encoder.Transcode(pstrInput, pstrOutput, pProgress);
+      M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
+      pWav2M4A->Transcode(pstrInput, pstrOutput, pProgress);
    }
 
    MFShutdown();
    CoUninitialize();
 }
-
-//extern "C" __declspec(dllexport) void CancelWaveToM4A()
-//{
-//   if (_Encoder)
-//      _Encoder->CancelTranscode();
-//}
-
