@@ -30,6 +30,14 @@ extern "C" __declspec(dllexport) void WaveToM4A(WCHAR* pstrInput, WCHAR* pstrOut
    CoUninitialize();
 }
 
+extern "C" __declspec(dllexport) int GetEncodingProgress()
+{
+   int progress = 0;
+   if (_Encoder)
+      progress = _Encoder->GetEncodingProgress();
+   return progress;
+}
+
 extern "C" __declspec(dllexport) void CancelWaveToM4A()
 {
    if (_Encoder)
