@@ -1,6 +1,7 @@
 # Visual Studio generated files #
 *.sdf
 *.opensdf
+*.suo
 ipch/
 [Dd]ebug*/
 [Rr]elease*/
