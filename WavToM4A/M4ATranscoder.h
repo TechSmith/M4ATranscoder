@@ -23,9 +23,11 @@ public:
 protected:
    HRESULT ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
       CComPtr<IMFTopology>& topology);
+   void SetSourceDuration();
 
 protected:
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
+   MFTIME m_SourceDuration;
    bool m_Canceling;
 };

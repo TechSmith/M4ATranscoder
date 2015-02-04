@@ -5,11 +5,25 @@
 
 M4ATranscoder::M4ATranscoder()
 {
+   m_SourceDuration = 0;
    m_Canceling = false;
 }
 
 M4ATranscoder::~M4ATranscoder()
 {
+}
+
+void M4ATranscoder::SetSourceDuration()
+{
+   m_SourceDuration = 0;
+   IMFPresentationDescriptor* pDescriptor = NULL;
+   ATLASSERT(m_Source != NULL);
+   HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
+   if (SUCCEEDED(hr))
+   {
+      hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
+      pDescriptor->Release();
+   }
 }
 
 bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
@@ -38,6 +52,7 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    ATLASSERT(stream_count == 1);
    hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &stream_desc);
    ATLASSERT(selected == TRUE);
+   SetSourceDuration();
 
    ConfigureOutput(pstrOutput, stream_desc, topology);
    hr = m_MediaSession->SetTopology(0, topology);
