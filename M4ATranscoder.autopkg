@@ -1,0 +1,80 @@
+configurations {
+   Linkage {
+      choices: { dynamic };
+      dynamic.description = "Dynamic";
+   }
+}
+
+nuget
+{
+   nuspec
+   {
+      id = M4ATranscoder;
+      version: 1.0.0.0;
+      title: Wave to M4A Transcoder;
+      authors: { TechSmith Corporation };
+      owners: { TechSmith Corporation };
+      licenseUrl: "http://opensource.org/licenses/MIT";
+      projectUrl: "https://github.com/TechSmith/M4ATranscoder";
+      iconUrl: "http://www.techsmith.com/favicon.ico";
+      requireLicenseAcceptance: false;
+      summary: M4ATranscoder library;
+      releaseNotes: "Initial release";
+      description: @"This can convert a Wave file to a M4A file.";
+      copyright: "Copyright (c) 2015 TechSmith Corporation. All rights reserved.";
+      tags: { native, tsc, vs2013, wav, m4a, transcode };
+   };
+
+   dependencies
+   {
+      packages:
+      {
+      };
+   }
+
+   files
+   {
+      nestedInclude:  { #destination = ${d_include}M4ATranscoder; Include\M4ATranscoder\*.h };
+      libpdb:          { #destination = ${d_lib}; };
+
+      [x86,v120,debug,dynamic]
+      {
+         lib: { Lib\debug\*.dll; }
+         libpdb: { Lib\debug\*.pdb; }
+      };
+      [x86,v120,release,dynamic]
+      {
+         lib: { Lib\release\*.dll; }
+         libpdb: { Lib\release\*.pdb; }
+      };
+      [x64,v120,debug,dynamic]
+      {
+         lib: { Lib\x64_debug\*.dll; }
+         libpdb: { Lib\x64_debug\*.pdb; }
+      };
+      [x64,v120,release,dynamic]
+      {
+         lib: { Lib\x64_release\*.dll; }
+         libpdb: { Lib\x64_release\*.pdb; }
+      };
+   };
+
+   props
+   {
+      // Additional declarations to insert into consuming projects before most of the
+      // project settings. (These may be modified in visual studio by a developer
+      // consuming this package.)
+      // This node is typically not needed for most packages and may be omitted.
+   }
+
+   targets
+   {
+      // Additional declarations to insert into consuming projects after most of the
+      // project settings. (These may NOT be modified in visual studio by a developer
+      // consuming this package.)
+      // This node is often used to set defines that are required that must be set by
+      // the consuming project in order to correctly link to the libraries in this
+      // package.  Such defines may be set either globally or only set under specific
+      // conditions.
+    }
+}
