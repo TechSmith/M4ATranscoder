@@ -30,24 +30,23 @@ int main()
       0,
       &transcoderThreadId);
 
-#ifdef TEST_ENCODING_PROGRESS
-   while (true)
-   {
-      int progress = progressfunc();
-      std::cout << progress << " percent complete" << std::endl;
-      if (progress == 100)
-         break;
-      Sleep(500);
-   }
-#endif
-
 #ifdef TEST_CANCEL_TRANSCODE
    Sleep(2000);
    cancelfunc();
 #endif
 
    // wait for transcoding to finish
-   WaitForSingleObject(hTranscoderThread, INFINITE);
+   while (true)
+   {
+      DWORD waitResult = WaitForSingleObject(hTranscoderThread, 500);
+      if (waitResult == WAIT_OBJECT_0)
+         break;
+
+#ifdef TEST_ENCODING_PROGRESS
+      int progress = progressfunc();
+      std::cout << progress << " percent complete" << std::endl;
+#endif
+   }
    CloseHandle(hTranscoderThread);
 
    return 0;
