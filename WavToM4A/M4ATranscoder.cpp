@@ -5,6 +5,7 @@
 
 M4ATranscoder::M4ATranscoder()
 {
+   m_Canceling = false;
 }
 
 M4ATranscoder::~M4ATranscoder()
@@ -56,10 +57,15 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
       {
          m_MediaSession->Stop();
       }
-      if (eType == MESessionEnded)
+      if (eType == MESessionEnded || eType == MESessionClosed)
       {
          m_MediaSession->Shutdown();
          break;
+      }
+      if (m_Canceling)
+      {
+         // closing the session will eventually trigger an MESessionClosed event
+         m_MediaSession->Close();
       }
       //if (eType == MESessionNotifyPresentationTime)
       //{
@@ -68,7 +74,26 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
       //}
       Sleep(100);
    }
+
+   // if we just canceled, remove the leftover file
+   if (m_Canceling)
+   {
+      m_Canceling = false;
+      BOOL deleteResult = DeleteFile(pstrOutput);
+      if (deleteResult == 0)
+      {
+         ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
+         return false;
+      }
+   }
+
    return true;
+}
+
+void M4ATranscoder::CancelTranscode()
+{
+   std::cout << "cancel" << std::endl;
+   m_Canceling = true;
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
