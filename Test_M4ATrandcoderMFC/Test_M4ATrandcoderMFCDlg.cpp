@@ -95,6 +95,7 @@ BEGIN_MESSAGE_MAP(CTest_M4ATrandcoderMFCDlg, CDialogEx)
    ON_MESSAGE(WM_USER_NOTIFY_FINISH, OnTranscodeCompleted)
    ON_BN_CLICKED(IDC_BTN_BROWSE_INPUT, OnBnClickedBtnBrowseInput)
    ON_BN_CLICKED(IDC_BTN_BROWSE_OUTPUT, OnBnClickedBtnBrowseOutput)
+   ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
