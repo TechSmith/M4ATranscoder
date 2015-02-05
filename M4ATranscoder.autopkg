@@ -10,7 +10,7 @@ nuget
    nuspec
    {
       id = M4ATranscoder;
-      version: 1.0.0.6;
+      version: 1.0.0.7;
       title: Wave to M4A Transcoder;
       authors: { TechSmith Corporation };
       owners: { TechSmith Corporation };
