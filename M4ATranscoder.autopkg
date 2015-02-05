@@ -1,16 +1,9 @@
-configurations {
-   Linkage {
-      choices: { dynamic };
-      dynamic.description = "Dynamic";
-   }
-}
-
 nuget
 {
    nuspec
    {
       id = M4ATranscoder;
-      version: 1.0.0.7;
+      version: 1.0.0.8;
       title: Wave to M4A Transcoder;
       authors: { TechSmith Corporation };
       owners: { TechSmith Corporation };
@@ -36,19 +29,19 @@ nuget
    {
       nestedInclude:  { #destination = ${d_include}M4ATranscoder; Include\M4ATranscoder\*.h };
 
-      [x86,v120,debug,dynamic]
+      [x86,v120,debug]
       {
          bin: { Bin\Win32\Debug\*.dll; }
       };
-      [x86,v120,release,dynamic]
+      [x86,v120,release]
       {
          bin: { Bin\Win32\Release\*.dll; }
       };
-      [x64,v120,debug,dynamic]
+      [x64,v120,debug]
       {
          bin: { Bin\X64\Debug\*.dll; }
       };
-      [x64,v120,release,dynamic]
+      [x64,v120,release]
       {
          bin: { Bin\X64\Release\*.dll; }
       };
