@@ -61,7 +61,6 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
 
    PROPVARIANT props;
    props.intVal = 0;
-   hr = m_MediaSession->Start(NULL, &props);
    while (FOREVER)
    {
       CComPtr<IMFMediaEvent> pEvent;
@@ -70,16 +69,33 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
       if (pEvent)
          pEvent->GetType(&eType);
 
+      if (eType == MESessionTopologyStatus)
+      {
+         MF_TOPOSTATUS topo_status = (MF_TOPOSTATUS)MFGetAttributeUINT32(
+            pEvent,
+            MF_EVENT_TOPOLOGY_STATUS,
+            MF_TOPOSTATUS_INVALID);
+
+         if (topo_status == MF_TOPOSTATUS_READY)
+         {
+            ATLTRACE(_T("MF_TOPOSTATUS_READY\n"));
+            hr = m_MediaSession->Start(NULL, &props);
+         }
+         if (topo_status == MF_TOPOSTATUS_ENDED)
+         {
+            m_MediaSession->Close();
+         }
+      }
+
       if (eType == MEEndOfPresentation)
       {
          m_MediaSession->Stop();
       }
-      if (eType == MESessionEnded || eType == MESessionClosed)
+      if (eType == MESessionClosed)
       {
          m_MediaSession->Shutdown();
          break;
       }
-
 
       if (pProgress && pProgress->GetCanceled())
       {
