@@ -22,19 +22,10 @@ WAVETOM4A_EXTERN void WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR
 {
    HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
-   // Initialize the COM library.
-   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+   HRESULT hr = MFStartup(MF_VERSION);
 
-   if (SUCCEEDED(hr))
-   {
-      hr = MFStartup(MF_VERSION);
-   }
-
-   {
-      M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
-      pWav2M4A->Transcode(pstrInput, pstrOutput, pProgress);
-   }
+   M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
+   pWav2M4A->Transcode(pstrInput, pstrOutput, pProgress);
 
    MFShutdown();
-   CoUninitialize();
 }
