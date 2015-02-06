@@ -142,7 +142,6 @@ bool CWaveToM4A::TranscoderWorker()
 
    if (WAVETOM4A_SUCCESS != initfunc(handle, m_strInput.LockBuffer(), m_strOutput.LockBuffer()))
    {
-      // MUFFINS
       goto Exit;
    }
 

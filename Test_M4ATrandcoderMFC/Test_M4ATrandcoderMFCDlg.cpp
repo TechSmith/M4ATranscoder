@@ -97,6 +97,8 @@ BEGIN_MESSAGE_MAP(CTest_M4ATrandcoderMFCDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
    ON_WM_DESTROY()
+   ON_BN_CLICKED(IDC_BTN_GETFORMATS, OnBnClickedGetFormats)
+   ON_CBN_SELCHANGE(IDC_COMBO_FORMATS, OnCbnSelchangeComboFormats)
    ON_BN_CLICKED(IDC_BTN_TRANSCODE, OnBnClickedBtnTranscode)
    ON_BN_CLICKED(IDC_BTN_CANCELTRANSCODE, OnBnClickedBtnCanceltranscode)
    ON_MESSAGE(WM_USER_NOTIFY_FINISH, OnTranscodeCompleted)
@@ -212,6 +214,16 @@ void CTest_M4ATrandcoderMFCDlg::OnDestroy()
    }
 }
 
+void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
+{
+   // TODO
+}
+
+void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
+{
+   // TODO
+}
+
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
 {
    CString strInput, strOutput;
@@ -293,3 +305,4 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnBrowseOutput()
    if (IDOK == dlg.DoModal())
       GetDlgItem(IDC_EDIT_OUTPUT)->SetWindowText(dlg.m_ofn.lpstrFile);
 }
+
