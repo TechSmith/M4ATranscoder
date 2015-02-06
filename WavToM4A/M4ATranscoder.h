@@ -22,13 +22,14 @@ public:
    void Init(WCHAR* pstrInput, WCHAR* pstrOutput);
    bool Transcode(IM4AProgress* pProgress);
    std::vector<WAVEFORMATEX>* GetOutputFormats() { return m_pOutputFormats; }
+   void SetOutputFormatIndex(int index) { m_FormatIndex = index; }
    double GetEncodingProgress();
 
 protected:
    HRESULT ConfigureOutput();
-   void SetSourceDuration();
-   void SetPresentationClock();
-   void SetOutputFormats();
+   void BuildSourceDuration();
+   void BuildPresentationClock();
+   void BuildOutputFormats();
 
 protected:
    WCHAR* m_pstrOutput;
@@ -40,6 +41,7 @@ protected:
    CComPtr<IMFTranscodeProfile> m_TranscodeProfile;
    CComPtr<IMFCollection> m_AvailableOutputTypes;
    std::vector<WAVEFORMATEX>* m_pOutputFormats;
+   int m_FormatIndex;
    MFTIME m_SourceDuration;
    IM4AProgress* m_pProgress;
 };

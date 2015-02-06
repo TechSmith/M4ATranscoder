@@ -34,12 +34,12 @@ void M4ATranscoder::Init(WCHAR* pstrInput, WCHAR* pstrOutput)
    hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &m_StreamDesc);
    ATLASSERT(selected == TRUE);
 
-   SetSourceDuration();
-   SetPresentationClock();
-   SetOutputFormats();
+   BuildSourceDuration();
+   BuildPresentationClock();
+   BuildOutputFormats();
 }
 
-void M4ATranscoder::SetSourceDuration()
+void M4ATranscoder::BuildSourceDuration()
 {
    m_SourceDuration = 0;
    CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
@@ -51,7 +51,7 @@ void M4ATranscoder::SetSourceDuration()
    }
 }
 
-void M4ATranscoder::SetPresentationClock()
+void M4ATranscoder::BuildPresentationClock()
 {
    ATLASSERT(m_MediaSession != NULL);
    CComPtr<IMFClock> pClock = NULL;
@@ -81,7 +81,7 @@ void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
    ATLTRACE(_T("\n"));
 }
 
-void M4ATranscoder::SetOutputFormats()
+void M4ATranscoder::BuildOutputFormats()
 {
    HRESULT hr;
    CComPtr<IMFMediaType> in_mfmt;
@@ -89,6 +89,7 @@ void M4ATranscoder::SetOutputFormats()
    GUID major_type_guid = GUID_NULL;
    GUID subtype;
    DWORD mt_count;
+   m_FormatIndex = 0;
 
    hr = m_StreamDesc->GetMediaTypeHandler(&mt_handler);
    hr = mt_handler->GetMajorType(&major_type_guid);
@@ -221,16 +222,13 @@ double M4ATranscoder::GetEncodingProgress()
 
 HRESULT M4ATranscoder::ConfigureOutput()
 {
-   // TODO: user sets this
-   int formatIndex = 0;
-
    CComPtr<IMFAttributes> attr;
    CComPtr<IMFAttributes> attr_container;
    CComQIPtr<IMFMediaType> out_mfmt;
    UINT32 wfx_size;
-   WAVEFORMATEX* wfmt = &m_pOutputFormats->at(formatIndex);
+   WAVEFORMATEX* wfmt = &m_pOutputFormats->at(m_FormatIndex);
 
-   HRESULT hr = m_AvailableOutputTypes->GetElement(formatIndex, (IUnknown**)&out_mfmt);
+   HRESULT hr = m_AvailableOutputTypes->GetElement(m_FormatIndex, (IUnknown**)&out_mfmt);
    hr = MFCreateWaveFormatExFromMFMediaType(out_mfmt, &wfmt, &wfx_size);
    hr = MFCreateAttributes(&attr, 0);
    hr = out_mfmt->CopyAllItems(attr);
