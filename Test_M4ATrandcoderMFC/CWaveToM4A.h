@@ -26,6 +26,8 @@ protected:
    bool TranscoderWorker();
 
 protected:
+   HMODULE m_hModule;
+   WaveToM4AHandle m_W2M4AHandle;
    CString m_strInput;
    CString m_strOutput;
    HANDLE m_hTranscoderThread;

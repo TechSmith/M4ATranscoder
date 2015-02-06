@@ -145,6 +145,8 @@ BOOL CTest_M4ATrandcoderMFCDlg::OnInitDialog()
    CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
    pProgress->SetRange32(0, 100);
 
+   GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(FALSE);
+   GetDlgItem(IDC_BTN_TRANSCODE)->EnableWindow(FALSE);
    GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(FALSE);
 
    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
@@ -216,29 +218,34 @@ void CTest_M4ATrandcoderMFCDlg::OnDestroy()
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
 {
-   // TODO
-}
-
-void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
-{
-   // TODO
-}
-
-void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
-{
    CString strInput, strOutput;
    GetDlgItem(IDC_EDIT_INPUT)->GetWindowText(strInput);
    GetDlgItem(IDC_EDIT_OUTPUT)->GetWindowText(strOutput);
-
-   CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
-   pProgress->SetPos(0);
-   m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
-   m_pTaskbar->SetProgressValue(GetSafeHwnd(), 0, 100);
 
    if (!CWaveToM4A::PerformCheck(strInput, strOutput))
       return;
 
    m_pTranscoder = new CWaveToM4A(strInput, strOutput);
+
+   // TODO: fill in the format combo
+
+   GetDlgItem(IDC_BTN_GETFORMATS)->EnableWindow(FALSE);
+   GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(TRUE);
+   GetDlgItem(IDC_BTN_TRANSCODE)->EnableWindow(TRUE);
+}
+
+void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
+{
+   // TODO: select the correct output format
+}
+
+void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
+{
+   CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
+   pProgress->SetPos(0);
+   m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
+   m_pTaskbar->SetProgressValue(GetSafeHwnd(), 0, 100);
+
    (void)m_pTranscoder->Transcode(GetSafeHwnd());//Multi-threaded so ignoring return value here :)
 
    //Disable some UI controls
