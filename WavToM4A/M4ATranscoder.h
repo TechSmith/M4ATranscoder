@@ -15,16 +15,19 @@ class IM4AProgress;
 class M4ATranscoder
 {
 public:
-   bool Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress);
+   void Init(WCHAR* pstrInput, WCHAR* pstrOutput);
+   bool Transcode(IM4AProgress* pProgress);
    double GetEncodingProgress();
 
 protected:
-   HRESULT ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
-      CComPtr<IMFTopology>& topology);
+   HRESULT ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc);
    void SetSourceDuration();
    void SetPresentationClock();
+   void SetOutputFormats();
 
 protected:
+   WCHAR* m_pstrOutput;
+   CComPtr<IMFTopology> m_Topology;
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
    CComPtr<IMFPresentationClock> m_Clock;

@@ -24,8 +24,21 @@ WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR*
 
    HRESULT hr = MFStartup(MF_VERSION);
 
+<<<<<<< HEAD
    M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
    bool bOK = pWav2M4A->Transcode(pstrInput, pstrOutput, pProgress);
+=======
+   if (SUCCEEDED(hr))
+   {
+      hr = MFStartup(MF_VERSION);
+   }
+
+   {
+      M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
+      pWav2M4A->Init(pstrInput, pstrOutput);
+      pWav2M4A->Transcode(pProgress);
+   }
+>>>>>>> set up init function
 
    MFShutdown();
    return bOK ? WAVETOM4A_SUCCESS : WAVETOM4A_FAILURE_GENERIC;

@@ -3,32 +3,9 @@
 #include "M4ATranscoder.h"
 #include <M4ATranscoder/M4ATranscoderAPI.h>
 
-void M4ATranscoder::SetSourceDuration()
+void M4ATranscoder::Init(WCHAR* pstrInput, WCHAR* pstrOutput)
 {
-   m_SourceDuration = 0;
-   CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
-   ATLASSERT(m_Source != NULL);
-   HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
-   if (SUCCEEDED(hr))
-   {
-      hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
-   }
-}
-
-void M4ATranscoder::SetPresentationClock()
-{
-   ATLASSERT(m_MediaSession != NULL);
-   CComPtr<IMFClock> pClock = NULL;
-   HRESULT hr = m_MediaSession->GetClock(&pClock);
-   ATLASSERT(SUCCEEDED(hr));
-   hr = pClock->QueryInterface(IID_PPV_ARGS(&m_Clock));
-   ATLASSERT(SUCCEEDED(hr));
-}
-
-#define FOREVER   true
-bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
-{
-   CComPtr<IMFTopology> topology;
+   m_pstrOutput = pstrOutput;
    HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
 
    MF_OBJECT_TYPE object_type;
@@ -56,8 +33,41 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
    SetSourceDuration();
    SetPresentationClock();
 
-   ConfigureOutput(pstrOutput, stream_desc, topology);
-   hr = m_MediaSession->SetTopology(0, topology);
+   ConfigureOutput(stream_desc);
+}
+
+void M4ATranscoder::SetSourceDuration()
+{
+   m_SourceDuration = 0;
+   CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
+   ATLASSERT(m_Source != NULL);
+   HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
+   if (SUCCEEDED(hr))
+   {
+      hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
+   }
+}
+
+void M4ATranscoder::SetPresentationClock()
+{
+   ATLASSERT(m_MediaSession != NULL);
+   CComPtr<IMFClock> pClock = NULL;
+   HRESULT hr = m_MediaSession->GetClock(&pClock);
+   ATLASSERT(SUCCEEDED(hr));
+   hr = pClock->QueryInterface(IID_PPV_ARGS(&m_Clock));
+   ATLASSERT(SUCCEEDED(hr));
+}
+
+void M4ATranscoder::SetOutputFormats()
+{
+
+}
+
+#define FOREVER   true
+bool M4ATranscoder::Transcode(IM4AProgress* pProgress)
+{
+   
+   HRESULT hr = m_MediaSession->SetTopology(0, m_Topology);
 
    PROPVARIANT props;
    props.intVal = 0;
@@ -114,7 +124,7 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
    }
 
    // if we just canceled, remove the leftover file
-   if (pProgress->GetCanceled() && !::DeleteFile(pstrOutput) )
+   if (pProgress->GetCanceled() && !::DeleteFile(m_pstrOutput) )
    {
       ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
       return false;
@@ -156,8 +166,7 @@ void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
    ATLTRACE(_T("\n"));
 }
 
-HRESULT M4ATranscoder::ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
-   CComPtr<IMFTopology>& topology)
+HRESULT M4ATranscoder::ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc)
 {
    HRESULT hr;
    CComPtr<IMFMediaType> in_mfmt;
@@ -222,8 +231,8 @@ HRESULT M4ATranscoder::ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescr
    hr = x_prof->SetContainerAttributes(attr_container);
    hr = MFCreateTranscodeTopology(
       m_Source,
-      pstrOutput,
+      m_pstrOutput,
       x_prof,
-      &topology);
+      &m_Topology);
    return hr;
 }
