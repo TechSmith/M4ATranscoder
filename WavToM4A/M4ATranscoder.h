@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mferror.h>
@@ -15,12 +17,15 @@ class IM4AProgress;
 class M4ATranscoder
 {
 public:
+   ~M4ATranscoder();
+
    void Init(WCHAR* pstrInput, WCHAR* pstrOutput);
    bool Transcode(IM4AProgress* pProgress);
+   std::vector<WAVEFORMATEX>* GetOutputFormats() { return m_pOutputFormats; }
    double GetEncodingProgress();
 
 protected:
-   HRESULT ConfigureOutput(CComPtr<IMFStreamDescriptor> stream_desc);
+   HRESULT ConfigureOutput();
    void SetSourceDuration();
    void SetPresentationClock();
    void SetOutputFormats();
@@ -31,6 +36,10 @@ protected:
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
    CComPtr<IMFPresentationClock> m_Clock;
+   CComPtr<IMFStreamDescriptor> m_StreamDesc;
+   CComPtr<IMFTranscodeProfile> m_TranscodeProfile;
+   CComPtr<IMFCollection> m_AvailableOutputTypes;
+   std::vector<WAVEFORMATEX>* m_pOutputFormats;
    MFTIME m_SourceDuration;
    IM4AProgress* m_pProgress;
 };
