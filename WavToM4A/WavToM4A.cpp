@@ -18,7 +18,7 @@ WAVETOM4A_EXTERN int WaveToM4AFree(WaveToM4AHandle* ppHandle)
    return WAVETOM4A_SUCCESS;
 }
 
-WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress)
+WAVETOM4A_EXTERN int WaveToM4AInit(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput)
 {
    HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 
@@ -26,6 +26,12 @@ WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR*
 
    M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
    pWav2M4A->Init(pstrInput, pstrOutput);
+   return WAVETOM4A_SUCCESS;
+}
+
+WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, IM4AProgress* pProgress)
+{
+   M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
    bool bOK = pWav2M4A->Transcode(pProgress);
 
    MFShutdown();

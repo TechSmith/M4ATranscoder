@@ -132,6 +132,20 @@ bool CWaveToM4A::TranscoderWorker()
       goto Exit;
    }
 
+   //Initialization
+   WAVETOM4AINIT_FUNC initfunc = (WAVETOM4AINIT_FUNC)GetProcAddress(hMod, "WaveToM4AInit");
+   if (initfunc == NULL)
+   {
+      AfxMessageBox(NEVER_TRANSLATE("Initialize method not found"));
+      goto Exit;
+   }
+
+   if (WAVETOM4A_SUCCESS != initfunc(handle, m_strInput.LockBuffer(), m_strOutput.LockBuffer()))
+   {
+      // MUFFINS
+      goto Exit;
+   }
+
    //Usage
    WAVETOM4A_FUNC convertfunc = (WAVETOM4A_FUNC)GetProcAddress(hMod, "WaveToM4A");
    if (convertfunc == NULL)
@@ -140,7 +154,7 @@ bool CWaveToM4A::TranscoderWorker()
       goto Exit;
    }
 
-   bOK = convertfunc(handle, m_strInput.LockBuffer(), m_strOutput.LockBuffer(), (IM4AProgress*)this) == WAVETOM4A_SUCCESS;
+   bOK = convertfunc(handle, (IM4AProgress*)this) == WAVETOM4A_SUCCESS;
    m_strInput.UnlockBuffer();
    m_strOutput.UnlockBuffer();
 

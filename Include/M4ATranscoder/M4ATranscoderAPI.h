@@ -21,12 +21,13 @@ public:
 
 typedef int(*WAVETOM4ACREATE_FUNC)(WaveToM4AHandle* ppHandle);
 typedef int(*WAVETOM4AFREE_FUNC)(WaveToM4AHandle* ppHandle);
-typedef int(*WAVETOM4A_FUNC)(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress);
+typedef int(*WAVETOM4AINIT_FUNC)(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput);
+typedef int(*WAVETOM4A_FUNC)(WaveToM4AHandle pHandle, IM4AProgress* pProgress);
 
 WAVETOM4A_EXTERN int WaveToM4ACreate(WaveToM4AHandle* ppHandle);
 WAVETOM4A_EXTERN int WaveToM4AFree(WaveToM4AHandle* ppHandle);
-
-WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress* pProgress);
+WAVETOM4A_EXTERN int WaveToM4AInit(WaveToM4AHandle pHandle, WCHAR* pstrInput, WCHAR* pstrOutput);
+WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, IM4AProgress* pProgress);
 
 #endif
 
