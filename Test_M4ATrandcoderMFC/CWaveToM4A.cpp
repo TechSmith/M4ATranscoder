@@ -78,8 +78,15 @@ bool CWaveToM4A::GetCanceled()
 DWORD WINAPI CWaveToM4A::TranscoderThread(LPVOID lpParam)
 {
    CWaveToM4A* pThiz = (CWaveToM4A*)lpParam;
+
+   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
    DWORD dwRet = pThiz->TranscoderWorker() ? 1 : 0;
+
+   CoUninitialize();
+
    pThiz->m_hTranscoderThread = 0;
+
    return dwRet;
 }
 
