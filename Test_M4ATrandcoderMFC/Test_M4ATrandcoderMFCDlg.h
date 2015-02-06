@@ -30,6 +30,7 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+   afx_msg void OnDestroy();
 	DECLARE_MESSAGE_MAP()
 public:
    afx_msg void OnBnClickedBtnTranscode();
@@ -39,6 +40,7 @@ public:
 protected:
    CWaveToM4A* m_pTranscoder;
    UINT_PTR m_nIDEvent;
+   ITaskbarList3* m_pTaskbar;
 public:
    afx_msg void OnBnClickedBtnBrowseInput();
    afx_msg void OnBnClickedBtnBrowseOutput();
