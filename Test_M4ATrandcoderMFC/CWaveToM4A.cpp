@@ -11,7 +11,10 @@ CWaveToM4A::CWaveToM4A(const CString& strInput, const CString& strOutput)
 CWaveToM4A::~CWaveToM4A()
 {
    if (m_hTranscoderThread != 0)
-      WaitThreadFinish();
+   {
+      m_hwnd = 0;
+      Cancel();
+   }
 }
 
 /*static*/
@@ -24,6 +27,12 @@ bool CWaveToM4A::PerformCheck(const CString& strInput, const CString& strOutput)
 
    if (!PathFileExists(strInput))
       return AfxMessageBox(NEVER_TRANSLATE("Input file doesn't exist")), false;
+
+   if (strInput.Right(3).CompareNoCase(NEVER_TRANSLATE("wav")))
+      if (AfxMessageBox(
+         NEVER_TRANSLATE("Input file's extension does matter.  Say it is a wav file but has extention .mp3 it might fail!  Continue?"), 
+         MB_YESNO) == IDNO)
+            return false;
 
    return true;
 }
@@ -81,13 +90,13 @@ DWORD WINAPI CWaveToM4A::TranscoderThread(LPVOID lpParam)
 
    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
-   DWORD dwRet = pThiz->TranscoderWorker() ? 1 : 0;
+   bool bOK = pThiz->TranscoderWorker();
 
    CoUninitialize();
 
    pThiz->m_hTranscoderThread = 0;
 
-   return dwRet;
+   return bOK ? 1 : 0;
 }
 
 bool CWaveToM4A::TranscoderWorker()
@@ -103,7 +112,7 @@ bool CWaveToM4A::TranscoderWorker()
       //AfxMessageBox is ok to call in a thread.  Still normally you'd want to return an enum
       //and message elsewhere :)
       AfxMessageBox(NEVER_TRANSLATE("Unable to open transcode library"));
-      goto Done;
+      goto Exit;
    }
 
    //Creation
@@ -113,14 +122,14 @@ bool CWaveToM4A::TranscoderWorker()
       //AfxMessageBox is ok to call in a thread.  Still normally you'd want to return an enum
       //and message elsewhere :)
       AfxMessageBox(NEVER_TRANSLATE("Transcode create method not found"));
-      goto Done;
+      goto Exit;
    }
 
    if (WAVETOM4A_SUCCESS != createW2M4Afunc(&handle))
    {
       //I would say out of memory but right now it'll actually throw an exception; but the intent
       //was if out of memory would return a non-success from the create function.
-      goto Done;
+      goto Exit;
    }
 
    //Usage
@@ -128,33 +137,35 @@ bool CWaveToM4A::TranscoderWorker()
    if (convertfunc == NULL)
    {
       AfxMessageBox(NEVER_TRANSLATE("Transcode method not found"));
-      goto Done;
-   }
-
-   convertfunc(handle, m_strInput.LockBuffer(), m_strOutput.LockBuffer(), (IM4AProgress*)this);
-   m_strInput.UnlockBuffer();
-   m_strOutput.UnlockBuffer();
-
-Done:
-   //Cleanup
-   WAVETOM4AFREE_FUNC freeW2M4Afunc = (WAVETOM4AFREE_FUNC)GetProcAddress(hMod, "WaveToM4AFree");
-   if (freeW2M4Afunc == NULL)
-   {
-      //AfxMessageBox is ok to call in a thread.  Still normally you'd want to return an enum
-      //and message elsewhere :)
-      AfxMessageBox(NEVER_TRANSLATE("Transcode free method not found"));
       goto Exit;
    }
 
-   if ( handle != NULL )
-      freeW2M4Afunc(&handle);
+   bOK = convertfunc(handle, m_strInput.LockBuffer(), m_strOutput.LockBuffer(), (IM4AProgress*)this) == WAVETOM4A_SUCCESS;
+   m_strInput.UnlockBuffer();
+   m_strOutput.UnlockBuffer();
+
+Exit:
+   //Cleanup
+   if (handle != NULL)
+   {
+      WAVETOM4AFREE_FUNC freeW2M4Afunc = (WAVETOM4AFREE_FUNC)GetProcAddress(hMod, "WaveToM4AFree");
+      if (freeW2M4Afunc == NULL)
+      {
+         //AfxMessageBox is ok to call in a thread.  Still normally you'd want to return an enum
+         //and message elsewhere :)
+         AfxMessageBox(NEVER_TRANSLATE("Transcode free method not found"));
+      }
+      else
+      {
+         freeW2M4Afunc(&handle);
+      }
+   }
 
    if( hMod != NULL )
       FreeLibrary(hMod);
 
-Exit:
    if (m_hwnd != 0)
-      ::PostMessage(m_hwnd, WM_USER_NOTIFY_FINISH, MAKEWPARAM(0, 0), MAKELPARAM(0, 0));
+      ::PostMessage(m_hwnd, WM_USER_NOTIFY_FINISH, MAKEWPARAM(bOK ? 1 : 0, 0), MAKELPARAM(0, 0));
 
    return bOK;
 }

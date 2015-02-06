@@ -18,6 +18,13 @@
 
 #define TIMER_EVENT_PROGRESS 15358
 
+#define DEFAULT_INFILE        NEVER_TRANSLATE("TestInput\\ExampleWaveFile.wav")
+#define DEFAULT_OUTFILE       NEVER_TRANSLATE("TestOutput\\ExampleM4AFile.m4a")
+
+#ifndef VERIFYHR
+#define VERIFYHR(hr)          VERIFY(SUCCEEDED(hr))
+#endif
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -54,18 +61,15 @@ END_MESSAGE_MAP()
 
 
 CTest_M4ATrandcoderMFCDlg::CTest_M4ATrandcoderMFCDlg(CWnd* pParent /*=NULL*/)
-   : CDialogEx(CTest_M4ATrandcoderMFCDlg::IDD, pParent), m_pTranscoder(NULL), m_nIDEvent(0)
+   : CDialogEx(CTest_M4ATrandcoderMFCDlg::IDD, pParent), m_pTranscoder(NULL), m_nIDEvent(0), m_pTaskbar(NULL)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 CTest_M4ATrandcoderMFCDlg::~CTest_M4ATrandcoderMFCDlg()
 {
-   if (m_nIDEvent != 0)
-   {
-      KillTimer(m_nIDEvent);
-      m_nIDEvent = 0;
-   }
+   if (m_pTaskbar)
+      m_pTaskbar->Release();
    SAFE_DELETE(m_pTranscoder);
 }
 
@@ -81,7 +85,9 @@ void CTest_M4ATrandcoderMFCDlg::OnTimer(UINT_PTR nIDEvent)
       if (m_pTranscoder != NULL)
       {
          CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
-         pProgress->SetPos((int)m_pTranscoder->GetProgress());
+         int nProgress = (int)m_pTranscoder->GetProgress();
+         pProgress->SetPos(nProgress);
+         m_pTaskbar->SetProgressValue(GetSafeHwnd(), nProgress, 100);
       }
    }
 }
@@ -90,6 +96,7 @@ BEGIN_MESSAGE_MAP(CTest_M4ATrandcoderMFCDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+   ON_WM_DESTROY()
    ON_BN_CLICKED(IDC_BTN_TRANSCODE, OnBnClickedBtnTranscode)
    ON_BN_CLICKED(IDC_BTN_CANCELTRANSCODE, OnBnClickedBtnCanceltranscode)
    ON_MESSAGE(WM_USER_NOTIFY_FINISH, OnTranscodeCompleted)
@@ -130,13 +137,19 @@ BOOL CTest_M4ATrandcoderMFCDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
-   SetDlgItemText(IDC_EDIT_INPUT, NEVER_TRANSLATE("TestInput\\ExampleWaveFile.wav"));
-   SetDlgItemText(IDC_EDIT_OUTPUT, NEVER_TRANSLATE("TestOutput\\ExampleM4AFile.m4a"));
+   SetDlgItemText(IDC_EDIT_INPUT, DEFAULT_INFILE);
+   SetDlgItemText(IDC_EDIT_OUTPUT, DEFAULT_OUTFILE);
 
    CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
    pProgress->SetRange32(0, 100);
 
    GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(FALSE);
+
+   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+   VERIFYHR(CoCreateInstance(
+      CLSID_TaskbarList, NULL, CLSCTX_ALL,
+      IID_ITaskbarList3, (void**)&m_pTaskbar));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -190,11 +203,25 @@ HCURSOR CTest_M4ATrandcoderMFCDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CTest_M4ATrandcoderMFCDlg::OnDestroy()
+{
+   if (m_nIDEvent != 0)
+   {
+      KillTimer(m_nIDEvent);
+      m_nIDEvent = 0;
+   }
+}
+
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
 {
    CString strInput, strOutput;
    GetDlgItem(IDC_EDIT_INPUT)->GetWindowText(strInput);
    GetDlgItem(IDC_EDIT_OUTPUT)->GetWindowText(strOutput);
+
+   CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
+   pProgress->SetPos(0);
+   m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
+   m_pTaskbar->SetProgressValue(GetSafeHwnd(), 0, 100);
 
    if (!CWaveToM4A::PerformCheck(strInput, strOutput))
       return;
@@ -227,6 +254,19 @@ LRESULT CTest_M4ATrandcoderMFCDlg::OnTranscodeCompleted(WPARAM wparam, LPARAM lp
    {
       KillTimer(m_nIDEvent);
       m_nIDEvent = 0;
+   }
+
+   WORD bSucceeded = LOWORD(wparam);
+   if (bSucceeded)
+   {
+      CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
+      pProgress->SetPos(100);
+      m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
+      m_pTaskbar->SetProgressValue(GetSafeHwnd(), 100, 100);
+   }
+   else
+   {
+      m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_ERROR);
    }
 
    SAFE_DELETE(m_pTranscoder);

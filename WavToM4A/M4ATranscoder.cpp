@@ -120,7 +120,7 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput, IM4AProgress*
       return false;
    }
 
-   return true;
+   return !pProgress->GetCanceled();
 }
 #undef FOREVER
 
