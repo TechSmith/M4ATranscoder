@@ -128,7 +128,19 @@ void M4ATranscoder::BuildOutputFormats()
       hr = MFCreateWaveFormatExFromMFMediaType(out_mfmt, &out_wfx, &wfx_size);
       TraceWavFormatEx(out_wfx);
 
-      if (out_wfx->wBitsPerSample == in_freq)
+      auto checkDuplicate = [this](WAVEFORMATEX* pFmt)
+      {
+         for (std::vector<WAVEFORMATEX>::size_type i = m_aOutputFormats.size(); i--> 0;)
+         {
+            WAVEFORMATEX& fmt = m_aOutputFormats[i];
+            if (fmt.nAvgBytesPerSec == pFmt->nAvgBytesPerSec
+               && fmt.nChannels == pFmt->nChannels
+               && fmt.nSamplesPerSec == pFmt->nSamplesPerSec)
+               return true;
+         }
+         return false;
+      };
+      if (out_wfx->wBitsPerSample == in_freq && !checkDuplicate(out_wfx))
          m_aOutputFormats.push_back(*out_wfx);
       CoTaskMemFree(out_wfx);
    }

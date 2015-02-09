@@ -267,6 +267,7 @@ void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
 {
+   ASSERT(m_pTranscoder);
    CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
    pProgress->SetPos(0);
    m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
