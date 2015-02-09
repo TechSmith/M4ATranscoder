@@ -33,9 +33,14 @@ protected:
    afx_msg void OnDestroy();
 	DECLARE_MESSAGE_MAP()
 public:
+   afx_msg void OnBnClickedGetFormats();
+   afx_msg void OnCbnSelchangeComboFormats();
    afx_msg void OnBnClickedBtnTranscode();
    afx_msg void OnBnClickedBtnCanceltranscode();
    afx_msg LRESULT OnTranscodeCompleted(WPARAM wparam, LPARAM lparam);
+
+protected:
+   void CreateTranscoderIfNecessary();
 
 protected:
    CWaveToM4A* m_pTranscoder;

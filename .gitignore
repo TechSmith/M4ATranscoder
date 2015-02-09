@@ -2,6 +2,7 @@
 *.sdf
 *.opensdf
 *.suo
+*.aps
 ipch/
 [Dd]ebug*/
 [Rr]elease*/

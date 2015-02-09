@@ -1,6 +1,8 @@
 #pragma once
 
 #include <M4ATranscoder/M4ATranscoderAPI.h>
+#include <vector>
+#include "Mmreg.h"
 
 #define WM_USER_NOTIFY_FINISH    WM_USER+10
 
@@ -10,6 +12,8 @@ public:
    CWaveToM4A(const CString& strInput, const CString& strOutput);
    ~CWaveToM4A();
    static bool PerformCheck(const CString& strInput, const CString& strOutput);
+   bool GetOutputFormats(WAVEFORMATEX** ppFormats, int& nCount);
+   void SetOutputFormatIndex(int index);
    bool Transcode(HWND hwnd = 0);
 
    void WaitThreadFinish();
@@ -26,6 +30,8 @@ protected:
    bool TranscoderWorker();
 
 protected:
+   HMODULE m_hModule;
+   WaveToM4AHandle m_W2M4AHandle;
    CString m_strInput;
    CString m_strOutput;
    HANDLE m_hTranscoderThread;
