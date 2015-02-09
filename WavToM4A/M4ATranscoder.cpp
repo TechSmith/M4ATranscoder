@@ -3,14 +3,9 @@
 #include "M4ATranscoder.h"
 #include <M4ATranscoder/M4ATranscoderAPI.h>
 
-M4ATranscoder::~M4ATranscoder()
-{
-   delete m_pOutputFormats;
-}
-
 void M4ATranscoder::Init(WCHAR* pstrInput, WCHAR* pstrOutput)
 {
-   m_pstrOutput = pstrOutput;
+   m_strOutput = pstrOutput;
    HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
 
    MF_OBJECT_TYPE object_type;
@@ -83,6 +78,10 @@ void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
 
 void M4ATranscoder::BuildOutputFormats()
 {
+   if (m_AvailableOutputTypes)
+      m_AvailableOutputTypes->RemoveAllElements();
+   m_aOutputFormats.clear();
+
    HRESULT hr;
    CComPtr<IMFMediaType> in_mfmt;
    CComPtr<IMFMediaTypeHandler> mt_handler;
@@ -122,16 +121,15 @@ void M4ATranscoder::BuildOutputFormats()
    CComPtr<IMFAttributes> attr;
    CComPtr<IMFAttributes> attr_container;
 
-   m_pOutputFormats = new std::vector<WAVEFORMATEX>();
-
    for (DWORD index = 0; index < mt_count; index++) {
       CComQIPtr<IMFMediaType> out_mfmt;
       hr = m_AvailableOutputTypes->GetElement(index, (IUnknown**)&out_mfmt);
       WAVEFORMATEX *out_wfx;
       hr = MFCreateWaveFormatExFromMFMediaType(out_mfmt, &out_wfx, &wfx_size);
       TraceWavFormatEx(out_wfx);
-      if (out_wfx->nChannels == in_ch && out_wfx->wBitsPerSample == in_freq)
-         m_pOutputFormats->push_back(*out_wfx);
+
+      if (out_wfx->wBitsPerSample == in_freq)
+         m_aOutputFormats.push_back(*out_wfx);
       CoTaskMemFree(out_wfx);
    }
 }
@@ -139,8 +137,10 @@ void M4ATranscoder::BuildOutputFormats()
 #define FOREVER   true
 bool M4ATranscoder::Transcode(IM4AProgress* pProgress)
 {
+   ATLASSERT(!m_strOutput.IsEmpty());//You never called Init
+
    ConfigureOutput();
-   
+
    HRESULT hr = m_MediaSession->SetTopology(0, m_Topology);
 
    PROPVARIANT props;
@@ -198,7 +198,7 @@ bool M4ATranscoder::Transcode(IM4AProgress* pProgress)
    }
 
    // if we just canceled, remove the leftover file
-   if (pProgress->GetCanceled() && !::DeleteFile(m_pstrOutput) )
+   if (pProgress->GetCanceled() && !::DeleteFile(m_strOutput) )
    {
       ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
       return false;
@@ -207,6 +207,18 @@ bool M4ATranscoder::Transcode(IM4AProgress* pProgress)
    return !pProgress->GetCanceled();
 }
 #undef FOREVER
+
+const std::vector<WAVEFORMATEX>& M4ATranscoder::GetOutputFormats()
+{
+   ATLASSERT(m_aOutputFormats.size() > 0);
+   return m_aOutputFormats;
+}
+
+void M4ATranscoder::SetOutputFormatIndex(int index)
+{
+   ATLASSERT(index >= 0 && index < (int)m_aOutputFormats.size());
+   m_FormatIndex = index;
+}
 
 double M4ATranscoder::GetEncodingProgress()
 {
@@ -222,14 +234,13 @@ double M4ATranscoder::GetEncodingProgress()
 
 HRESULT M4ATranscoder::ConfigureOutput()
 {
+   ATLASSERT(m_FormatIndex >= 0);
+
    CComPtr<IMFAttributes> attr;
    CComPtr<IMFAttributes> attr_container;
    CComQIPtr<IMFMediaType> out_mfmt;
-   UINT32 wfx_size;
-   WAVEFORMATEX* wfmt = &m_pOutputFormats->at(m_FormatIndex);
 
    HRESULT hr = m_AvailableOutputTypes->GetElement(m_FormatIndex, (IUnknown**)&out_mfmt);
-   hr = MFCreateWaveFormatExFromMFMediaType(out_mfmt, &wfmt, &wfx_size);
    hr = MFCreateAttributes(&attr, 0);
    hr = out_mfmt->CopyAllItems(attr);
 
@@ -241,8 +252,9 @@ HRESULT M4ATranscoder::ConfigureOutput()
    hr = m_TranscodeProfile->SetContainerAttributes(attr_container);
    hr = MFCreateTranscodeTopology(
       m_Source,
-      m_pstrOutput,
+      m_strOutput,
       m_TranscodeProfile,
       &m_Topology);
+
    return hr;
 }

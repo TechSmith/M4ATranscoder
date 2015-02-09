@@ -29,10 +29,22 @@ WAVETOM4A_EXTERN int WaveToM4AInit(WaveToM4AHandle pHandle, WCHAR* pstrInput, WC
    return WAVETOM4A_SUCCESS;
 }
 
-WAVETOM4A_EXTERN int WaveToM4AGetFormats(WaveToM4AHandle pHandle, std::vector<WAVEFORMATEX>** ppReturn)
+WAVETOM4A_EXTERN int WaveToM4AGetFormats(WaveToM4AHandle pHandle, WAVEFORMATEX** ppFormats, int& nCount)
 {
    M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
-   *ppReturn = pWav2M4A->GetOutputFormats();
+
+   const std::vector<WAVEFORMATEX>& formats = pWav2M4A->GetOutputFormats();
+   *ppFormats = new WAVEFORMATEX[formats.size()];
+   for (std::vector<WAVEFORMATEX>::size_type i = 0; i < formats.size(); i++)
+   {
+      const WAVEFORMATEX& fmt = formats[i];
+      ATLASSERT(fmt.wFormatTag != WAVE_FORMAT_EXTENSIBLE);
+      void* pSrc = (void*)&fmt;
+      void* pDst = (void*)(*ppFormats + i);
+      memcpy(pDst, pSrc, sizeof(WAVEFORMATEX));
+   }
+
+   nCount = formats.size();
 
    return WAVETOM4A_SUCCESS;
 }

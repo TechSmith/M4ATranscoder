@@ -8,6 +8,7 @@
 
 #include <windows.h>
 #include <atlbase.h>//For CComPtr
+#include <atlstr.h>//For CString
 
 #pragma comment(lib, "mfplat.lib")
 #pragma comment(lib, "mf.lib")
@@ -17,12 +18,10 @@ class IM4AProgress;
 class M4ATranscoder
 {
 public:
-   ~M4ATranscoder();
-
    void Init(WCHAR* pstrInput, WCHAR* pstrOutput);
    bool Transcode(IM4AProgress* pProgress);
-   std::vector<WAVEFORMATEX>* GetOutputFormats() { return m_pOutputFormats; }
-   void SetOutputFormatIndex(int index) { m_FormatIndex = index; }
+   const std::vector<WAVEFORMATEX>& GetOutputFormats();
+   void SetOutputFormatIndex(int index);
    double GetEncodingProgress();
 
 protected:
@@ -32,7 +31,7 @@ protected:
    void BuildOutputFormats();
 
 protected:
-   WCHAR* m_pstrOutput;
+   ATL::CString m_strOutput;
    CComPtr<IMFTopology> m_Topology;
    CComPtr<IMFMediaSession> m_MediaSession;
    CComQIPtr<IMFMediaSource> m_Source;
@@ -40,8 +39,9 @@ protected:
    CComPtr<IMFStreamDescriptor> m_StreamDesc;
    CComPtr<IMFTranscodeProfile> m_TranscodeProfile;
    CComPtr<IMFCollection> m_AvailableOutputTypes;
-   std::vector<WAVEFORMATEX>* m_pOutputFormats;
-   int m_FormatIndex;
-   MFTIME m_SourceDuration;
-   IM4AProgress* m_pProgress;
+
+   std::vector<WAVEFORMATEX> m_aOutputFormats;
+   int m_FormatIndex = 0;
+   MFTIME m_SourceDuration = 0LL;
+   IM4AProgress* m_pProgress = NULL;
 };

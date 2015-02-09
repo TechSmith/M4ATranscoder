@@ -229,24 +229,31 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
    m_pTranscoder = new CWaveToM4A(strInput, strOutput);
 
    // fill out format combo box
-   std::vector<WAVEFORMATEX>* pFormats = m_pTranscoder->GetOutputFormats();
-   if (pFormats)
-   {
-      CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_COMBO_FORMATS);
-      int formats = pFormats->size();
-      for (int i = 0; i < formats; i++)
-      {
-         WAVEFORMATEX item = pFormats->at(i);
-         int hz = item.nSamplesPerSec;
-         int kbps = (item.nAvgBytesPerSec * 8) / 1000;
-         std::wostringstream ss;
-         ss << hz << "hz, " << kbps << " kpbs";
-         pCombo->AddString(ss.str().c_str());
-      }
-      pCombo->SetCurSel(0);
-   }
+   WAVEFORMATEX* pFormats = NULL;
+   int nCount = 0;
+   m_pTranscoder->GetOutputFormats(&pFormats, nCount);
+   CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_COMBO_FORMATS);
+   pCombo->ResetContent();
 
-   GetDlgItem(IDC_BTN_GETFORMATS)->EnableWindow(FALSE);
+   auto describe = [](WAVEFORMATEX fmt){
+      int hz = fmt.nSamplesPerSec;
+      int kbps = (fmt.nAvgBytesPerSec * 8) / 1000;
+      std::wostringstream ss;
+      ss
+         << hz << "hz, "
+         << [](int nChannels){ return nChannels == 1 ? "Mono" : "Stereo"; }(fmt.nChannels) << ", "
+         << kbps << " kbps";
+      return ss.str();
+   };
+
+   for (int i = 0; i < nCount; i++)
+   {
+      WAVEFORMATEX fmt = *(pFormats + i);
+      pCombo->AddString(describe(fmt).c_str());
+   }
+   pCombo->SetCurSel(0);
+   delete[] pFormats;
+
    GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(TRUE);
    GetDlgItem(IDC_BTN_TRANSCODE)->EnableWindow(TRUE);
 }
@@ -268,6 +275,8 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
    (void)m_pTranscoder->Transcode(GetSafeHwnd());//Multi-threaded so ignoring return value here :)
 
    //Disable some UI controls
+   GetDlgItem(IDC_BTN_GETFORMATS)->EnableWindow(FALSE);
+   GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(FALSE);
    GetDlgItem(IDC_BTN_TRANSCODE)->EnableWindow(FALSE);
    GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(TRUE);
 
@@ -309,6 +318,8 @@ LRESULT CTest_M4ATrandcoderMFCDlg::OnTranscodeCompleted(WPARAM wparam, LPARAM lp
 
    SAFE_DELETE(m_pTranscoder);
 
+   GetDlgItem(IDC_BTN_GETFORMATS)->EnableWindow(TRUE);
+   GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(TRUE);
    GetDlgItem(IDC_BTN_TRANSCODE)->EnableWindow(TRUE);
    GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(FALSE);
 
