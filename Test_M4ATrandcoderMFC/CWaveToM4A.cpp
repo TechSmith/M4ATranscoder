@@ -72,6 +72,24 @@ bool CWaveToM4A::PerformCheck(const CString& strInput, const CString& strOutput)
    return true;
 }
 
+std::vector<WAVEFORMATEX>* CWaveToM4A::GetOutputFormats()
+{
+   WAVETOM4AGETFORMATS_FUNC formatsfunc = (WAVETOM4AGETFORMATS_FUNC)GetProcAddress(m_hModule, "WaveToM4AGetFormats");
+   if (formatsfunc == NULL)
+   {
+      AfxMessageBox(NEVER_TRANSLATE("Get formats method not found"));
+      return NULL;
+   }
+
+   std::vector<WAVEFORMATEX>* pFormats = NULL;
+   if (WAVETOM4A_SUCCESS != formatsfunc(m_W2M4AHandle, &pFormats))
+   {
+      AfxMessageBox(NEVER_TRANSLATE("Failed to get formats"));
+      return NULL;
+   }
+   return pFormats;
+}
+
 bool CWaveToM4A::Transcode(HWND hwnd /*= 0*/)
 {
    m_hwnd = hwnd;

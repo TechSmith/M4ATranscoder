@@ -7,6 +7,7 @@
 #include "Test_M4ATrandcoderMFCDlg.h"
 #include "afxdialogex.h"
 #include "CWaveToM4A.h"
+#include <sstream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -227,7 +228,23 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
 
    m_pTranscoder = new CWaveToM4A(strInput, strOutput);
 
-   // TODO: fill in the format combo
+   // fill out format combo box
+   std::vector<WAVEFORMATEX>* pFormats = m_pTranscoder->GetOutputFormats();
+   if (pFormats)
+   {
+      CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_COMBO_FORMATS);
+      int formats = pFormats->size();
+      for (int i = 0; i < formats; i++)
+      {
+         WAVEFORMATEX item = pFormats->at(i);
+         int hz = item.nSamplesPerSec;
+         int kbps = (item.nAvgBytesPerSec * 8) / 1000;
+         std::wostringstream ss;
+         ss << hz << "hz, " << kbps << " kpbs";
+         pCombo->AddString(ss.str().c_str());
+      }
+      pCombo->SetCurSel(0);
+   }
 
    GetDlgItem(IDC_BTN_GETFORMATS)->EnableWindow(FALSE);
    GetDlgItem(IDC_COMBO_FORMATS)->EnableWindow(TRUE);
