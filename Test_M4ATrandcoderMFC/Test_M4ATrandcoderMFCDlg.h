@@ -40,6 +40,9 @@ public:
    afx_msg LRESULT OnTranscodeCompleted(WPARAM wparam, LPARAM lparam);
 
 protected:
+   void CreateTranscoderIfNecessary();
+
+protected:
    CWaveToM4A* m_pTranscoder;
    UINT_PTR m_nIDEvent;
    ITaskbarList3* m_pTaskbar;

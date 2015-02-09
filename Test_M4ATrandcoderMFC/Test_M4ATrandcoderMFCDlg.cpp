@@ -219,14 +219,7 @@ void CTest_M4ATrandcoderMFCDlg::OnDestroy()
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
 {
-   CString strInput, strOutput;
-   GetDlgItem(IDC_EDIT_INPUT)->GetWindowText(strInput);
-   GetDlgItem(IDC_EDIT_OUTPUT)->GetWindowText(strOutput);
-
-   if (!CWaveToM4A::PerformCheck(strInput, strOutput))
-      return;
-
-   m_pTranscoder = new CWaveToM4A(strInput, strOutput);
+   CreateTranscoderIfNecessary();
 
    // fill out format combo box
    WAVEFORMATEX* pFormats = NULL;
@@ -267,7 +260,8 @@ void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
 {
-   ASSERT(m_pTranscoder);
+   CreateTranscoderIfNecessary();
+
    CProgressCtrl* pProgress = (CProgressCtrl*)GetDlgItem(IDC_PROGRESS);
    pProgress->SetPos(0);
    m_pTaskbar->SetProgressState(GetSafeHwnd(), TBPF_NORMAL);
@@ -325,6 +319,18 @@ LRESULT CTest_M4ATrandcoderMFCDlg::OnTranscodeCompleted(WPARAM wparam, LPARAM lp
    GetDlgItem(IDC_BTN_CANCELTRANSCODE)->EnableWindow(FALSE);
 
    return 0L;
+}
+
+void CTest_M4ATrandcoderMFCDlg::CreateTranscoderIfNecessary()
+{
+   CString strInput, strOutput;
+   GetDlgItem(IDC_EDIT_INPUT)->GetWindowText(strInput);
+   GetDlgItem(IDC_EDIT_OUTPUT)->GetWindowText(strOutput);
+
+   if (!CWaveToM4A::PerformCheck(strInput, strOutput))
+      return;
+
+   m_pTranscoder = new CWaveToM4A(strInput, strOutput);
 }
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnBrowseInput()
