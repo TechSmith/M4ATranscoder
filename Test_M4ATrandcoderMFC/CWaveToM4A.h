@@ -13,6 +13,7 @@ public:
    ~CWaveToM4A();
    static bool PerformCheck(const CString& strInput, const CString& strOutput);
    std::vector<WAVEFORMATEX>* GetOutputFormats();
+   void SetOutputFormatIndex(int index);
    bool Transcode(HWND hwnd = 0);
 
    void WaitThreadFinish();

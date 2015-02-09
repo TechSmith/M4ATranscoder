@@ -37,6 +37,13 @@ WAVETOM4A_EXTERN int WaveToM4AGetFormats(WaveToM4AHandle pHandle, std::vector<WA
    return WAVETOM4A_SUCCESS;
 }
 
+WAVETOM4A_EXTERN int WaveToM4ASetFormat(WaveToM4AHandle pHandle, int formatIndex)
+{
+   M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;
+   pWav2M4A->SetOutputFormatIndex(formatIndex);
+   return WAVETOM4A_SUCCESS;
+}
+
 WAVETOM4A_EXTERN int WaveToM4A(WaveToM4AHandle pHandle, IM4AProgress* pProgress)
 {
    M4ATranscoder* pWav2M4A = (M4ATranscoder*)pHandle;

@@ -90,6 +90,19 @@ std::vector<WAVEFORMATEX>* CWaveToM4A::GetOutputFormats()
    return pFormats;
 }
 
+void CWaveToM4A::SetOutputFormatIndex(int index)
+{
+   WAVETOM4ASETFORMAT_FUNC formatfunc = (WAVETOM4ASETFORMAT_FUNC)GetProcAddress(m_hModule, "WaveToM4ASetFormat");
+   if (formatfunc == NULL)
+   {
+      AfxMessageBox(NEVER_TRANSLATE("Set format method not found"));
+   }
+   else if (WAVETOM4A_SUCCESS != formatfunc(m_W2M4AHandle, index))
+   {
+      AfxMessageBox(NEVER_TRANSLATE("Failed to set output format"));
+   }
+}
+
 bool CWaveToM4A::Transcode(HWND hwnd /*= 0*/)
 {
    m_hwnd = hwnd;

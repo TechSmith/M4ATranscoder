@@ -253,7 +253,9 @@ void CTest_M4ATrandcoderMFCDlg::OnBnClickedGetFormats()
 
 void CTest_M4ATrandcoderMFCDlg::OnCbnSelchangeComboFormats()
 {
-   // TODO: select the correct output format
+   CComboBox* pCombo = (CComboBox*)GetDlgItem(IDC_COMBO_FORMATS);
+   int formatIndex = pCombo->GetCurSel();
+   m_pTranscoder->SetOutputFormatIndex(formatIndex);
 }
 
 void CTest_M4ATrandcoderMFCDlg::OnBnClickedBtnTranscode()
