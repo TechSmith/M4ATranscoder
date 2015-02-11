@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+
+        <title>WaveToM4AInit - M4ATranscoder</title>
+
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">M4ATranscoder</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Details <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                        
+                            <li >
+                                <a href="../WaveToM4ACreate">WaveToM4ACreate</a>
+                            </li>
+                        
+                            <li >
+                                <a href="../WaveToM4AFree">WaveToM4AFree</a>
+                            </li>
+                        
+                            <li class="active">
+                                <a href=".">WaveToM4AInit</a>
+                            </li>
+                        
+                            <li >
+                                <a href="../WaveToM4A">WaveToM4A</a>
+                            </li>
+                        
+                        </ul>
+                    </li>
+                
+                
+                </ul>
+            
+
+            
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                
+                <li >
+                    <a rel="next" href="../WaveToM4AFree">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../WaveToM4A">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                
+            </ul>
+            
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#wavetom4ainit">WaveToM4AInit</a></li>
+        
+    
+        <li class="main "><a href="#note">Note</a></li>
+        
+    
+        <li class="main "><a href="#info">Info</a></li>
+        
+    
+        <li class="main "><a href="#usage">Usage</a></li>
+        
+    
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h2 id="wavetom4ainit">WaveToM4AInit</h2>
+<pre><code class="cpp">WAVETOM4A_EXTERN int WaveToM4AInit(WaveToM4AHandle ppHandle);
+</code></pre>
+
+<h2 id="note">Note</h2>
+<p>Unlinke WaveToM4ACreate and WaveToM4AFree this function simply just takes a WaveToM4AHandle (void*); not a pointer to a WaveToM4AHandle.</p>
+<h2 id="info">Info</h2>
+<p>This function allow you to setup your encode.  You specify the input wave file and the output M4A file.  This library doesn't create the output directory if it doesn't exist.  So make sure the resulting destination is correct.  At the end of this function the output doesn't exist yet.  That is WaveToM4A.</p>
+<p>This function returns WAVETOM4A_SUCCESS (0) on success.</p>
+<h2 id="usage">Usage</h2>
+<pre><code class="cpp">```cpp
+WaveToM4ahandle handle;
+HModule hMod;
+CString strInput, strOutput;
+//...
+WAVETOM4AINIT_FUNC initfunc = (WAVETOM4AINIT_FUNC)GetProcAddress(hMod, &quot;WaveToM4AInit&quot;);
+if (WAVETOM4A_SUCCESS == initfunc(handle, strInput.LockBuffer(), strOutput.LockBuffer()))
+{
+  //...
+}
+</code></pre>
+
+</div>
+            
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/prettify-1.0.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script src="../../js/base.js"></script>
+    </body>
+</html>
