@@ -1,19 +1,11 @@
 #include "stdafx.h"
-#include <iostream>
 
 #include "M4ATranscoder.h"
+#include <M4ATranscoder/M4ATranscoderAPI.h>
 
-M4ATranscoder::M4ATranscoder()
+void M4ATranscoder::Init(WCHAR* pstrInput, WCHAR* pstrOutput)
 {
-}
-
-M4ATranscoder::~M4ATranscoder()
-{
-}
-
-bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
-{
-   CComPtr<IMFTopology> topology;
+   m_strOutput = pstrOutput;
    HRESULT hr = MFCreateMediaSession(NULL, &m_MediaSession);
 
    MF_OBJECT_TYPE object_type;
@@ -29,46 +21,39 @@ bool M4ATranscoder::Transcode(WCHAR* pstrInput, WCHAR* pstrOutput)
    ATLASSERT(object_type == MF_OBJECT_MEDIASOURCE);
 
    CComPtr<IMFPresentationDescriptor> pres_desc;
-   CComPtr<IMFStreamDescriptor> stream_desc;
    DWORD stream_count;
    BOOL selected;
    hr = m_Source->CreatePresentationDescriptor(&pres_desc);
    hr = pres_desc->GetStreamDescriptorCount(&stream_count);
    ATLASSERT(stream_count == 1);
-   hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &stream_desc);
+   hr = pres_desc->GetStreamDescriptorByIndex(0, &selected, &m_StreamDesc);
    ATLASSERT(selected == TRUE);
 
-   ConfigureOutput(pstrOutput, stream_desc, topology);
-   hr = m_MediaSession->SetTopology(0, topology);
+   BuildSourceDuration();
+   BuildPresentationClock();
+   BuildOutputFormats();
+}
 
-   PROPVARIANT props;
-   props.intVal = 0;
-   hr = m_MediaSession->Start(NULL, &props);
-   while (true)
+void M4ATranscoder::BuildSourceDuration()
+{
+   m_SourceDuration = 0;
+   CComPtr<IMFPresentationDescriptor> pDescriptor = NULL;
+   ATLASSERT(m_Source != NULL);
+   HRESULT hr = m_Source->CreatePresentationDescriptor(&pDescriptor);
+   if (SUCCEEDED(hr))
    {
-      CComPtr<IMFMediaEvent> pEvent;
-      MediaEventType eType = 0;
-      m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
-      if (pEvent)
-         pEvent->GetType(&eType);
-      std::cout << eType << std::endl;
-      if (eType == MEEndOfPresentation)
-      {
-         m_MediaSession->Stop();
-      }
-      if (eType == MESessionEnded)
-      {
-         m_MediaSession->Shutdown();
-         break;
-      }
-      //if (eType == MESessionNotifyPresentationTime)
-      //{
-         //PROPVARIANT propOffset;
-         //pEvent->GetItem(MF_EVENT_START_PRESENTATION_TIME_AT_OUTPUT, &propOffset);
-      //}
-      Sleep(100);
+      hr = pDescriptor->GetUINT64(MF_PD_DURATION, (UINT64*)(&m_SourceDuration));
    }
-   return true;
+}
+
+void M4ATranscoder::BuildPresentationClock()
+{
+   ATLASSERT(m_MediaSession != NULL);
+   CComPtr<IMFClock> pClock = NULL;
+   HRESULT hr = m_MediaSession->GetClock(&pClock);
+   ATLASSERT(SUCCEEDED(hr));
+   hr = pClock->QueryInterface(IID_PPV_ARGS(&m_Clock));
+   ATLASSERT(SUCCEEDED(hr));
 }
 
 void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
@@ -91,17 +76,21 @@ void TraceWavFormatEx(const WAVEFORMATEX * const wfx)
    ATLTRACE(_T("\n"));
 }
 
-HRESULT M4ATranscoder::ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescriptor> stream_desc,
-   CComPtr<IMFTopology>& topology)
+void M4ATranscoder::BuildOutputFormats()
 {
+   if (m_AvailableOutputTypes)
+      m_AvailableOutputTypes->RemoveAllElements();
+   m_aOutputFormats.clear();
+
    HRESULT hr;
    CComPtr<IMFMediaType> in_mfmt;
    CComPtr<IMFMediaTypeHandler> mt_handler;
    GUID major_type_guid = GUID_NULL;
    GUID subtype;
    DWORD mt_count;
+   m_FormatIndex = 0;
 
-   hr = stream_desc->GetMediaTypeHandler(&mt_handler);
+   hr = m_StreamDesc->GetMediaTypeHandler(&mt_handler);
    hr = mt_handler->GetMajorType(&major_type_guid);
    ATLASSERT(major_type_guid == MFMediaType_Audio);
    hr = mt_handler->GetMediaTypeCount(&mt_count);
@@ -119,46 +108,165 @@ HRESULT M4ATranscoder::ConfigureOutput(WCHAR* pstrOutput, CComPtr<IMFStreamDescr
    TraceWavFormatEx(in_wfx);
    CoTaskMemFree(in_wfx);
 
-   CComPtr<IMFTranscodeProfile> x_prof;
-   CComPtr<IMFCollection> available_types;
    DWORD dwFlags = MFT_ENUM_FLAG_ALL & (~MFT_ENUM_FLAG_FIELDOFUSE);
 
-   hr = MFCreateTranscodeProfile(&x_prof);
+   hr = MFCreateTranscodeProfile(&m_TranscodeProfile);
    hr = MFTranscodeGetAudioOutputAvailableTypes(
       MFAudioFormat_AAC,
       dwFlags | MFT_ENUM_FLAG_SORTANDFILTER,
       NULL,
-      &available_types);
-   hr = available_types->GetElementCount(&mt_count);
+      &m_AvailableOutputTypes);
+   hr = m_AvailableOutputTypes->GetElementCount(&mt_count);
 
    CComPtr<IMFAttributes> attr;
    CComPtr<IMFAttributes> attr_container;
 
    for (DWORD index = 0; index < mt_count; index++) {
       CComQIPtr<IMFMediaType> out_mfmt;
-      hr = available_types->GetElement(index, (IUnknown**)&out_mfmt);
+      hr = m_AvailableOutputTypes->GetElement(index, (IUnknown**)&out_mfmt);
       WAVEFORMATEX *out_wfx;
       hr = MFCreateWaveFormatExFromMFMediaType(out_mfmt, &out_wfx, &wfx_size);
-      const WORD out_ch = out_wfx->nChannels;
-      const WORD out_freq = out_wfx->wBitsPerSample;
       TraceWavFormatEx(out_wfx);
+
+      auto checkDuplicate = [this](WAVEFORMATEX* pFmt)
+      {
+         for (std::vector<WAVEFORMATEX>::size_type i = m_aOutputFormats.size(); i--> 0;)
+         {
+            WAVEFORMATEX& fmt = m_aOutputFormats[i];
+            if (fmt.nAvgBytesPerSec == pFmt->nAvgBytesPerSec
+               && fmt.nChannels == pFmt->nChannels
+               && fmt.nSamplesPerSec == pFmt->nSamplesPerSec)
+               return true;
+         }
+         return false;
+      };
+      if (out_wfx->wBitsPerSample == in_freq && !checkDuplicate(out_wfx))
+         m_aOutputFormats.push_back(*out_wfx);
       CoTaskMemFree(out_wfx);
-      if (out_ch == in_ch && out_freq == in_freq) {
-         hr = MFCreateAttributes(&attr, 0);
-         hr = out_mfmt->CopyAllItems(attr);
+   }
+}
+
+#define FOREVER   true
+bool M4ATranscoder::Transcode(IM4AProgress* pProgress)
+{
+   ATLASSERT(!m_strOutput.IsEmpty());//You never called Init
+
+   ConfigureOutput();
+
+   HRESULT hr = m_MediaSession->SetTopology(0, m_Topology);
+
+   PROPVARIANT props;
+   props.intVal = 0;
+   while (FOREVER)
+   {
+      CComPtr<IMFMediaEvent> pEvent;
+      MediaEventType eType = 0;
+      m_MediaSession->GetEvent(MF_EVENT_FLAG_NO_WAIT, &pEvent);
+      if (pEvent)
+         pEvent->GetType(&eType);
+
+      if (eType == MESessionTopologyStatus)
+      {
+         MF_TOPOSTATUS topo_status = (MF_TOPOSTATUS)MFGetAttributeUINT32(
+            pEvent,
+            MF_EVENT_TOPOLOGY_STATUS,
+            MF_TOPOSTATUS_INVALID);
+
+         if (topo_status == MF_TOPOSTATUS_READY)
+         {
+            ATLTRACE(_T("MF_TOPOSTATUS_READY\n"));
+            hr = m_MediaSession->Start(NULL, &props);
+         }
+         if (topo_status == MF_TOPOSTATUS_ENDED)
+         {
+            m_MediaSession->Close();
+         }
+      }
+
+      if (eType == MEEndOfPresentation)
+      {
+         m_MediaSession->Stop();
+      }
+      if (eType == MESessionClosed)
+      {
+         m_MediaSession->Shutdown();
          break;
       }
+
+      if (pProgress && pProgress->GetCanceled())
+      {
+         // closing the session will eventually trigger an MESessionClosed event
+         m_MediaSession->Close();
+      }
+
+      if (pProgress)
+      {
+         double dProgress = GetEncodingProgress();
+         if (dProgress > 0.)
+            pProgress->SetProgress(dProgress);
+      }
+
+      Sleep(100);
    }
-   hr = x_prof->SetAudioAttributes(attr);
+
+   // if we just canceled, remove the leftover file
+   if (pProgress->GetCanceled() && !::DeleteFile(m_strOutput) )
+   {
+      ATLTRACE(_T("DeleteFile failed (%d)"), GetLastError());
+      return false;
+   }
+
+   return !pProgress->GetCanceled();
+}
+#undef FOREVER
+
+const std::vector<WAVEFORMATEX>& M4ATranscoder::GetOutputFormats()
+{
+   ATLASSERT(m_aOutputFormats.size() > 0);
+   return m_aOutputFormats;
+}
+
+void M4ATranscoder::SetOutputFormatIndex(int index)
+{
+   ATLASSERT(index >= 0 && index < (int)m_aOutputFormats.size());
+   m_FormatIndex = index;
+}
+
+double M4ATranscoder::GetEncodingProgress()
+{
+   double dProgress = -1.;
+   if (m_Clock && m_SourceDuration != 0)
+   {
+      MFTIME pos = 0;
+      m_Clock->GetTime(&pos);
+      dProgress = ((100. * pos) / m_SourceDuration);
+   }
+   return dProgress;
+}
+
+HRESULT M4ATranscoder::ConfigureOutput()
+{
+   ATLASSERT(m_FormatIndex >= 0);
+
+   CComPtr<IMFAttributes> attr;
+   CComPtr<IMFAttributes> attr_container;
+   CComQIPtr<IMFMediaType> out_mfmt;
+
+   HRESULT hr = m_AvailableOutputTypes->GetElement(m_FormatIndex, (IUnknown**)&out_mfmt);
+   hr = MFCreateAttributes(&attr, 0);
+   hr = out_mfmt->CopyAllItems(attr);
+
+   hr = m_TranscodeProfile->SetAudioAttributes(attr);
    hr = MFCreateAttributes(&attr_container, 1);
    hr = attr_container->SetGUID(
       MF_TRANSCODE_CONTAINERTYPE,
       MFTranscodeContainerType_MPEG4);
-   hr = x_prof->SetContainerAttributes(attr_container);
+   hr = m_TranscodeProfile->SetContainerAttributes(attr_container);
    hr = MFCreateTranscodeTopology(
       m_Source,
-      pstrOutput,
-      x_prof,
-      &topology);
+      m_strOutput,
+      m_TranscodeProfile,
+      &m_Topology);
+
    return hr;
 }

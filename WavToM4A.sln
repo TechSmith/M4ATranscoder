@@ -5,7 +5,12 @@ VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WavToM4A", "WavToM4A\WavToM4A.vcxproj", "{44659594-C2AB-4E14-924A-131B12CF9C48}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_M4ATranscode", "Test_M4ATranscode\Test_M4ATranscode.vcxproj", "{D8FC8901-1468-41CC-9387-B065F5C06CA0}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoPkgFile", "AutoPkgFile", "{0C7F6CDF-26E0-405C-93BC-2A2A4C4C24EC}"
+	ProjectSection(SolutionItems) = preProject
+		M4ATranscoder.autopkg = M4ATranscoder.autopkg
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_M4ATrandcoderMFC", "Test_M4ATrandcoderMFC\Test_M4ATrandcoderMFC.vcxproj", "{6B401690-031A-49E9-A568-96441B50E81C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{44659594-C2AB-4E14-924A-131B12CF9C48} = {44659594-C2AB-4E14-924A-131B12CF9C48}
 	EndProjectSection
@@ -26,14 +31,14 @@ Global
 		{44659594-C2AB-4E14-924A-131B12CF9C48}.Release|Win32.Build.0 = Release|Win32
 		{44659594-C2AB-4E14-924A-131B12CF9C48}.Release|x64.ActiveCfg = Release|x64
 		{44659594-C2AB-4E14-924A-131B12CF9C48}.Release|x64.Build.0 = Release|x64
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Debug|Win32.Build.0 = Debug|Win32
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Debug|x64.ActiveCfg = Debug|x64
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Debug|x64.Build.0 = Debug|x64
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Release|Win32.ActiveCfg = Release|Win32
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Release|Win32.Build.0 = Release|Win32
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Release|x64.ActiveCfg = Release|x64
-		{D8FC8901-1468-41CC-9387-B065F5C06CA0}.Release|x64.Build.0 = Release|x64
+		{6B401690-031A-49E9-A568-96441B50E81C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6B401690-031A-49E9-A568-96441B50E81C}.Debug|Win32.Build.0 = Debug|Win32
+		{6B401690-031A-49E9-A568-96441B50E81C}.Debug|x64.ActiveCfg = Debug|x64
+		{6B401690-031A-49E9-A568-96441B50E81C}.Debug|x64.Build.0 = Debug|x64
+		{6B401690-031A-49E9-A568-96441B50E81C}.Release|Win32.ActiveCfg = Release|Win32
+		{6B401690-031A-49E9-A568-96441B50E81C}.Release|Win32.Build.0 = Release|Win32
+		{6B401690-031A-49E9-A568-96441B50E81C}.Release|x64.ActiveCfg = Release|x64
+		{6B401690-031A-49E9-A568-96441B50E81C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

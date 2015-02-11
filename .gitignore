@@ -1,0 +1,12 @@
+# Visual Studio generated files #
+*.sdf
+*.opensdf
+*.suo
+*.aps
+ipch/
+[Dd]ebug*/
+[Rr]elease*/
+
+# Project specific files#
+TestInput*/
+TestOutput*/
