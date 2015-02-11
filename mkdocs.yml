@@ -1,0 +1,9 @@
+site_name: M4ATranscoder
+pages:
+- [index.md, Home]
+- [details/WaveToM4ACreate.md, Details]
+- [details/WaveToM4AFree.md, Details]
+- [details/WaveToM4AInit.md, Details]
+- [details/WaveToM4AGetFormats.md, Details]
+- [details/WaveToM4ASetFormat.md, Details]
+- [details/WaveToM4A.md, Details]
