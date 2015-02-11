@@ -69,6 +69,14 @@
                                 <a href="../WaveToM4AInit">WaveToM4AInit</a>
                             </li>
                         
+                            <li >
+                                <a href="../WaveToM4AGetFormats">WaveToM4AGetFormats</a>
+                            </li>
+                        
+                            <li >
+                                <a href="../WaveToM4ASetFormat">WaveToM4ASetFormat</a>
+                            </li>
+                        
                             <li class="active">
                                 <a href=".">WaveToM4A</a>
                             </li>
@@ -86,7 +94,7 @@
                 
                 
                 <li >
-                    <a rel="next" href="../WaveToM4AInit">
+                    <a rel="next" href="../WaveToM4ASetFormat">
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
@@ -146,8 +154,7 @@
 <h2 id="canceling">Canceling</h2>
 <p>If you cancel your transcode the output file will be deleted.</p>
 <h2 id="usage">Usage</h2>
-<pre><code class="cpp">```cpp
-WaveToM4ahandle handle;
+<pre><code class="cpp">WaveToM4ahandle handle;
 HModule hMod;
 //...
 WAVETOM4A_FUNC convertfunc = (WAVETOM4A_FUNC)GetProcAddress(hMod, &quot;WaveToM4A&quot;);

@@ -9,7 +9,7 @@
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
 
-        <title>WaveToM4AFree - M4ATranscoder</title>
+        <title>WaveToM4ASetFormat - M4ATranscoder</title>
 
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
@@ -61,8 +61,8 @@
                                 <a href="../WaveToM4ACreate">WaveToM4ACreate</a>
                             </li>
                         
-                            <li class="active">
-                                <a href=".">WaveToM4AFree</a>
+                            <li >
+                                <a href="../WaveToM4AFree">WaveToM4AFree</a>
                             </li>
                         
                             <li >
@@ -73,8 +73,8 @@
                                 <a href="../WaveToM4AGetFormats">WaveToM4AGetFormats</a>
                             </li>
                         
-                            <li >
-                                <a href="../WaveToM4ASetFormat">WaveToM4ASetFormat</a>
+                            <li class="active">
+                                <a href=".">WaveToM4ASetFormat</a>
                             </li>
                         
                             <li >
@@ -94,12 +94,12 @@
                 
                 
                 <li >
-                    <a rel="next" href="../WaveToM4ACreate">
+                    <a rel="next" href="../WaveToM4AGetFormats">
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
                 <li >
-                    <a rel="prev" href="../WaveToM4AInit">
+                    <a rel="prev" href="../WaveToM4A">
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -116,7 +116,10 @@
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
     
-        <li class="main active"><a href="#wavetom4afree">WaveToM4AFree</a></li>
+        <li class="main active"><a href="#wavetom4asetformat">WaveToM4ASetFormat</a></li>
+        
+    
+        <li class="main "><a href="#note">Note</a></li>
         
     
         <li class="main "><a href="#info">Info</a></li>
@@ -129,22 +132,29 @@
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h2 id="wavetom4afree">WaveToM4AFree</h2>
-<pre><code class="cpp">WAVETOM4A_EXTERN int WaveToM4AFree(WaveToM4AHandle* ppHandle);
+<h2 id="wavetom4asetformat">WaveToM4ASetFormat</h2>
+<pre><code class="cpp">WAVETOM4A_EXTERN int WaveToM4ASetFormat(WaveToM4AHandle ppHandle, int formatIndex);
 </code></pre>
 
+<h2 id="note">Note</h2>
+<p>Unlike WaveToM4ACreate and WaveToM4AFree this function simply just takes a WaveToM4AHandle (void*); not a pointer to a WaveToM4AHandle.</p>
 <h2 id="info">Info</h2>
-<p>As mentioned in [WaveToM4ACreate] you can have more than one transcode at a time.  When you are done with a transcode simply call this function to clean it up.</p>
-<p>This function deallocates a transcoding object.  A WaveToM4AHandle is just a void*  But it is easier to just think about it as a handle.</p>
-<p>This function returns WAVETOM4A_SUCCESS (0) on success and your handle would now be set.</p>
+<p>This function allow you to setup your encode bitrate.  You might want to get a list of the available bitrates first using [WaveToM4AGetFormats]; and so this function you specify the format index (0-based) to use.</p>
+<p>This function returns WAVETOM4A_SUCCESS (0) on success.</p>
 <h2 id="usage">Usage</h2>
 <pre><code class="cpp">WaveToM4ahandle handle;
 HModule hMod;
 //...
-WAVETOM4AFREE_FUNC freeW2M4Afunc = (WAVETOM4AFREE_FUNC)GetProcAddress(hMod, &quot;WaveToM4AFree&quot;);
-if( WAVETOM4A_SUCCESS == freeW2M4Afunc(&amp;handle) )
+WAVETOM4AGETFORMATS_FUNC formatsfunc = (WAVETOM4AGETFORMATS_FUNC)GetProcAddress(hMod, &quot;WaveToM4AGetFormats&quot;);
+WAVEFORMATEX* pFormats = NULL;
+if (WAVETOM4A_SUCCESS == formatsfunc(handle, ppFormats, nCount))
 {
-  //...
+   WAVETOM4ASETFORMAT_FUNC setFormatfunc = (WAVETOM4ASETFORMAT_FUNC)GetProcAddress(hMod, &quot;WaveToM4ASetFormat&quot;);
+   if( WAVETOM4A_SUCCESS == setFormatfunc(handle, 0) )
+   {
+      //...
+   }
+   delete[] pFormats;
 }
 </code></pre>
 

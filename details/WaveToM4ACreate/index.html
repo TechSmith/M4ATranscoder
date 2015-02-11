@@ -70,6 +70,14 @@
                             </li>
                         
                             <li >
+                                <a href="../WaveToM4AGetFormats">WaveToM4AGetFormats</a>
+                            </li>
+                        
+                            <li >
+                                <a href="../WaveToM4ASetFormat">WaveToM4ASetFormat</a>
+                            </li>
+                        
+                            <li >
                                 <a href="../WaveToM4A">WaveToM4A</a>
                             </li>
                         
@@ -130,8 +138,7 @@
 <p>This function create a transcoding object.  A WaveToM4AHandle is just a void*  But it is easier to just think about it as a handle.</p>
 <p>This function returns WAVETOM4A_SUCCESS (0) on success and your handle would now be set.</p>
 <h2 id="usage">Usage</h2>
-<pre><code class="cpp">```cpp
-WaveToM4ahandle handle;
+<pre><code class="cpp">WaveToM4ahandle handle;
 HModule hMod;
 //...
 WAVETOM4ACREATE_FUNC createW2M4Afunc = (WAVETOM4ACREATE_FUNC)GetProcAddress(hMod, &quot;WaveToM4ACreate&quot;);

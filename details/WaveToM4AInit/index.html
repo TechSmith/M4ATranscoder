@@ -70,6 +70,14 @@
                             </li>
                         
                             <li >
+                                <a href="../WaveToM4AGetFormats">WaveToM4AGetFormats</a>
+                            </li>
+                        
+                            <li >
+                                <a href="../WaveToM4ASetFormat">WaveToM4ASetFormat</a>
+                            </li>
+                        
+                            <li >
                                 <a href="../WaveToM4A">WaveToM4A</a>
                             </li>
                         
@@ -91,7 +99,7 @@
                     </a>
                 </li>
                 <li >
-                    <a rel="prev" href="../WaveToM4A">
+                    <a rel="prev" href="../WaveToM4AGetFormats">
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -134,8 +142,7 @@
 <p>This function allow you to setup your encode.  You specify the input wave file and the output M4A file.  This library doesn't create the output directory if it doesn't exist.  So make sure the resulting destination is correct.  At the end of this function the output doesn't exist yet.  That is WaveToM4A.</p>
 <p>This function returns WAVETOM4A_SUCCESS (0) on success.</p>
 <h2 id="usage">Usage</h2>
-<pre><code class="cpp">```cpp
-WaveToM4ahandle handle;
+<pre><code class="cpp">WaveToM4ahandle handle;
 HModule hMod;
 CString strInput, strOutput;
 //...
